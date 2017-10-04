@@ -139,6 +139,9 @@ void blit_screen(void)
 	write(1, screen.display, screen.current_len);
 }
 
+/**
+ * init_screen:	assign screen memory.
+ */
 struct Screen *init_screen(void)
 {
 	if (!(get_dimensions(&screen)))
