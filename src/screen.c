@@ -126,7 +126,7 @@ void write_page(struct Window *file, size_t line)
 	/* New line for cursor input */
 	*d_pt++ = '\n', l++;
 
-	l += sprintf(d_pt, "rows -> %u: ", screen.row);
+	//l += sprintf(d_pt, "rows -> %u: ", screen.row);
 
 	screen.current_len = l;
 }
