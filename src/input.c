@@ -20,6 +20,7 @@ int readchar(void)
 	if ((tcsetattr(0, TCSANOW, &term)) != 0 )
 		return -1;
 	read(0, str, 1);
+	write(1, "\n", 1);
 	if ((tcsetattr(0, TCSANOW, &oterm)) != 0 )
 		return -1;
 	return str[0];
