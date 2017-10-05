@@ -22,7 +22,7 @@ int get_dimensions(struct Screen *sc)
 		return 0;
 	sc->col = win.ws_col;
 	sc->row = win.ws_row;
-	sc->len = sc->col * sc->row;
+	sc->len = sc->col * sc->row * 4;	// 4 to allow for UTF-8
 	sc->current_len = 0;
 	return 1;
 }
@@ -68,7 +68,7 @@ char *advance_to(struct Window *file, size_t move)
 }
 
 /**
- * utf8_word_length:	Return wordlength in bytes described by the initial
+ * utf8_word_length:	Return word length in bytes described by the initial
  * UTF-8 char.
  */
 unsigned utf8_wordlength(unsigned char a)
@@ -103,9 +103,9 @@ unsigned test_utf8(unsigned char a)
 }
 
 /**
- * page_write:	Write one page of file into screen struct, essentialy the
+ * page_write:	Write one page of file into screen struct, essentially the
  * screen struct holds a char* string that is printed to the screen when the
- * command is given, the folio struct is a files text content, that is coppied
+ * command is given, the folio struct is a files text content, that is copied
  * over truncating any lines longer than the screen is wide, and maintaining
  * the line number in advance_to(), so that the file can be scrolled through.
  */
@@ -122,12 +122,13 @@ void page_write(struct Window *file, size_t line)
 		/* -OFFSET for cursor line and page header */
 		if (*f_pt != '\0') {
 			if (col < screen.col) {
-				/* col++ when a compleet UTF-8 character */
+				/* col++ when a complete UTF-8 character is
+				 * read */
 				col += test_utf8((unsigned)*f_pt);
 				*d_pt++ = *f_pt++;
 			} else {
 				if (*f_pt == '\n')
-					*d_pt++ = *f_pt++, col = 0;
+					*d_pt++ = *f_pt++;
 				else
 					f_pt++;
 			}
@@ -158,7 +159,7 @@ struct Screen *init_screen(void)
 	if (!(get_dimensions(&screen)))
 		printf("error:	get_dimensions failed in init_screen\n");
 
-	screen.display = malloc((screen.len * sizeof(int))*4+1);
+	screen.display = malloc((screen.len * sizeof(char))+1);
 	clear_screen();
 
 	return &screen;
