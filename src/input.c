@@ -38,15 +38,15 @@ void get_input(struct Window *files, int c)
 
 	switch (c)
 	{
-		case START: write_page(&files[0], START);
+		case START: page_write(&files[0], START);
 			  break;
-		case 'k': write_page(&files[0], UP);
+		case 'k': page_write(&files[0], UP);
 			  break;
-		case 'A': write_page(&files[0], UP);
+		case 'A': page_write(&files[0], UP);
 			  break;
-		case 'j': write_page(&files[0], DOWN);
+		case 'j': page_write(&files[0], DOWN);
 			  break;
-		case 'B': write_page(&files[0], DOWN);
+		case 'B': page_write(&files[0], DOWN);
 			  break;
 		default: 
 			  break;

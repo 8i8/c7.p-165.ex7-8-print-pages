@@ -64,26 +64,44 @@ char *advance_to(struct Window *file, size_t move)
 }
 
 /**
+ * utf8_word_length:	Return wordlength in bytes described by the initial
+ * UTF-8 char.
+ */
+int utf8_wordlength(unsigned char a)
+{
+	a = ~a;
+	if (!(a >> 4))
+		return 4;
+	else if (!(a >> 5))
+		return 3;
+	else if (!(a >> 6))
+		return 2;
+	return 0;
+}
+
+/**
  * test_utf8:	Keep track of UTF-8 char count and status.
  */
-int test_utf8(char a)
+int test_utf8(unsigned char a)
 {
-	static short prev;
+	static short count;
 
-	if (a >> 7 && !prev) {
-		prev = IN;
-		return 1;
-	} else if (a >> 7 && prev) {
-		prev = OUT;
+	if (count) {
+		if(--count)
+			return 0;
+		else
+			return 1;
+	} else if (a >> 7) {
+		count =  utf8_wordlength(a);
 		return 0;
 	}
 	return 1;
 }
 
 /**
- * write_page:	Write one page of file into screen struct.
+ * page_write:	Write one page of file into screen struct.
  */
-void write_page(struct Window *file, size_t line)
+void page_write(struct Window *file, size_t line)
 {
 	size_t i, j, k, l;
 	int io;
@@ -102,7 +120,7 @@ void write_page(struct Window *file, size_t line)
 		/* -OFFSET cursor line and page header */
 		if (*f_pt != '\0') {
 			/* No line wrap */
-			if (k < screen.col+23)
+			if (k < screen.col)
 			{
 				if (!(k += test_utf8(*f_pt)))
 					io = IN;
