@@ -53,7 +53,8 @@ char *advance_to(struct Window *file, size_t move)
 		case UP: if (start >= screen.row-OFFSET)
 				start -= screen.row-OFFSET;
 			break;
-		case DOWN: if (start < (file->lines)-screen.row-OFFSET)
+		case DOWN: if (start < (file->lines)-screen.row-OFFSET
+					   && file->lines > screen.row-OFFSET)
 				start += screen.row-OFFSET;
 			break;
 		default:
@@ -135,8 +136,6 @@ void page_write(struct Window *file, size_t line)
 		} else
 			*d_pt++ = '\n', row++;
 
-	/* Newline for cursor input */
-	//*d_pt++ = '\n';
 	d_pt += sprintf(d_pt, "rows -> %u cols -> %u : ", screen.row, screen.col);
 	screen.current_len = d_pt - count;
 }
@@ -158,7 +157,7 @@ struct Screen *init_screen(void)
 		printf("error:	get_dimensions failed in init_screen\n");
 
 	screen.display = malloc((screen.len * sizeof(char))+1);
-	clear_screen();
+	//clear_screen();
 
 	return &screen;
 }
