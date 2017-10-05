@@ -98,7 +98,11 @@ int test_utf8(unsigned char a)
 }
 
 /**
- * page_write:	Write one page of file into screen struct.
+ * page_write:	Write one page of file into screen struct, essentialy the
+ * screen struct holds a char* string that is printed to the screen when the
+ * command is given, the folio struct is a files text content, that is coppied
+ * over truncating any lines longer than the screen is wide, and maintaining
+ * the line number in advance_to(), so that the file can be scrolled through.
  */
 void page_write(struct Window *file, size_t line)
 {
