@@ -3,7 +3,11 @@
 #include <sys/ioctl.h>
 #include <string.h>
 
-#define OFFSET	1	/* Offset cursor and header line */
+#define OFFSET		1		/* Offset cursor and header line */
+#define FOUR_BYTES	30		/* Test for UTF-8 width */
+#define THREE_BYTES	14
+#define TWO_BYTES	6
+
 enum inout { OUT, IN };
 
 static struct Screen screen;
@@ -67,13 +71,13 @@ char *advance_to(struct Window *file, size_t move)
  * utf8_word_length:	Return wordlength in bytes described by the initial
  * UTF-8 char.
  */
-int utf8_wordlength(unsigned char a)
+unsigned utf8_wordlength(unsigned char a)
 {
-	if	(a >> 3 == 30)
+	if	(a >> 3 == FOUR_BYTES)
 		return 3;
-	else if (a >> 4 == 14)
+	else if (a >> 4 == THREE_BYTES)
 		return 2;
-	else if (a >> 5 == 6)
+	else if (a >> 5 == TWO_BYTES)
 		return 1;
 	return 0;
 }
@@ -81,7 +85,7 @@ int utf8_wordlength(unsigned char a)
 /**
  * test_utf8:	Keep track of UTF-8 char count and status.
  */
-int test_utf8(unsigned char a)
+unsigned test_utf8(unsigned char a)
 {
 	static short unsigned count;
 
@@ -92,7 +96,8 @@ int test_utf8(unsigned char a)
 			return 1;
 	} else if (a >> 7) {
 		count = utf8_wordlength(a);
-		return 0;
+		if (count)
+			return 0;
 	}
 	return 1;
 }
@@ -106,42 +111,35 @@ int test_utf8(unsigned char a)
  */
 void page_write(struct Window *file, size_t line)
 {
-	size_t i, j, k, l;
-	char *f_pt, *d_pt;
-	d_pt = screen.display;
+	size_t i, row, col;
+	char *f_pt, *d_pt, *count;
+	d_pt = count = screen.display;
 	f_pt = advance_to(file, line);
+	row = col = 0;
 
-	i = 0; // Iteration.
-	j = 0; // Row count.
-	k = 0; // Count of char used in line, for no wrap.
-	l = 0; // Total length, required for write().
-
-	for ( ; i < screen.len && j < screen.row-OFFSET; i++)
+	for (i = 0 ; i < screen.len && row < screen.row-OFFSET; i++)
 
 		/* -OFFSET for cursor line and page header */
 		if (*f_pt != '\0') {
-			if (k < screen.col)
-			{
-				/* k++ if compleet UTF-8 character */
-				k += test_utf8((unsigned)*f_pt);
-				*d_pt++ = *f_pt++, l++;
-			}
-			else if (k >= screen.col)
-			{
+			if (col < screen.col) {
+				/* col++ when a compleet UTF-8 character */
+				col += test_utf8((unsigned)*f_pt);
+				*d_pt++ = *f_pt++;
+			} else {
 				if (*f_pt == '\n')
-					*d_pt++ = *f_pt++, l++;
+					*d_pt++ = *f_pt++, col = 0;
 				else
 					f_pt++;
 			}
 			if (*f_pt == '\n')
-				j++, k = 0;
+				row++, col = 0;
 		} else
-			*d_pt++ = '\n', j++, l++;
+			*d_pt++ = '\n', row++;
 
 	/* Newline for cursor input */
-	*d_pt++ = '\n', l++;
-	l += sprintf(d_pt, "rows -> %u cols -> %u : ", screen.row, screen.col);
-	screen.current_len = l;
+	*d_pt++ = '\n';
+	d_pt += sprintf(d_pt, "rows -> %u cols -> %u : ", screen.row, screen.col);
+	screen.current_len = d_pt - count;
 }
 
 /**
