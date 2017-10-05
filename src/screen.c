@@ -45,7 +45,7 @@ char *advance_to(struct Window *file, size_t move)
 	static size_t start;
 	fp = file->content;
 
-	/* OFFSET to account for the cursor and static display elements */
+	/* OFFSET, account for the cursor and static display elements */
 	switch (move)
 	{
 		case START: start = 0;
@@ -60,7 +60,7 @@ char *advance_to(struct Window *file, size_t move)
 			break;
 	}
 
-	/* advance to start */
+	/* advance */
 	for (i = 0, j = 0; i < file->len && j < start; i++)
 		if (*(fp++) == '\n')
 			j++;
@@ -68,8 +68,8 @@ char *advance_to(struct Window *file, size_t move)
 }
 
 /**
- * utf8_word_length:	Return word length in bytes described by the initial
- * UTF-8 char.
+ * utf8_word_length:	Return multi-char length (-1) in bytes, read from the
+ * initial UTF-8 char.
  */
 unsigned utf8_wordlength(unsigned char a)
 {
@@ -104,10 +104,11 @@ unsigned test_utf8(unsigned char a)
 
 /**
  * page_write:	Write one page of file into screen struct, essentially the
- * screen struct holds a char* string that is printed to the screen when the
- * command is given, the folio struct is a files text content, that is copied
- * over truncating any lines longer than the screen is wide, and maintaining
- * the line number in advance_to(), so that the file can be scrolled through.
+ * screen struct contains a char* string that is printed to screen when the
+ * command is given, the folio struct is a files textual content, copied
+ * whilst truncating any lines that are longer than the screen is wide.
+ * Maintaining the position by way of the line number is the advance_to()
+ * function, used to scroll page by page through the document.
  */
 void page_write(struct Window *file, size_t line)
 {
@@ -117,13 +118,10 @@ void page_write(struct Window *file, size_t line)
 	f_pt = advance_to(file, line);
 	row = col = 0;
 
+	/* -OFFSET for cursor line and page header */
 	for (i = 0 ; i < screen.len && row < screen.row-OFFSET; i++)
-
-		/* -OFFSET for cursor line and page header */
 		if (*f_pt != '\0') {
 			if (col < screen.col) {
-				/* col++ when a complete UTF-8 character is
-				 * read */
 				col += test_utf8((unsigned)*f_pt);
 				*d_pt++ = *f_pt++;
 			} else {
@@ -132,19 +130,19 @@ void page_write(struct Window *file, size_t line)
 				else
 					f_pt++;
 			}
-			if (*f_pt == '\n')
+			if (*(f_pt-1) == '\n')
 				row++, col = 0;
 		} else
 			*d_pt++ = '\n', row++;
 
 	/* Newline for cursor input */
-	*d_pt++ = '\n';
+	//*d_pt++ = '\n';
 	d_pt += sprintf(d_pt, "rows -> %u cols -> %u : ", screen.row, screen.col);
 	screen.current_len = d_pt - count;
 }
 
 /**
- * blit_screen:	Write content of screen struct to the terminal.
+ * blit_screen:	Write content of screen struct to STDOUT.
  */
 void blit_screen(void)
 {
