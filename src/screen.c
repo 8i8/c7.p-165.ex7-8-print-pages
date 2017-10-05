@@ -69,13 +69,12 @@ char *advance_to(struct Window *file, size_t move)
  */
 int utf8_wordlength(unsigned char a)
 {
-	a = ~a;
-	if (!(a >> 4))
-		return 4;
-	else if (!(a >> 5))
+	if	(a >> 3 == 30)
 		return 3;
-	else if (!(a >> 6))
+	else if (a >> 4 == 14)
 		return 2;
+	else if (a >> 5 == 6)
+		return 1;
 	return 0;
 }
 
@@ -84,15 +83,15 @@ int utf8_wordlength(unsigned char a)
  */
 int test_utf8(unsigned char a)
 {
-	static short count;
+	static short unsigned count;
 
 	if (count) {
-		if(--count)
+		if(--count) 
 			return 0;
 		else
 			return 1;
 	} else if (a >> 7) {
-		count =  utf8_wordlength(a);
+		count = utf8_wordlength(a);
 		return 0;
 	}
 	return 1;
@@ -104,7 +103,6 @@ int test_utf8(unsigned char a)
 void page_write(struct Window *file, size_t line)
 {
 	size_t i, j, k, l;
-	int io;
 	char *f_pt, *d_pt;
 	d_pt = screen.display;
 	f_pt = advance_to(file, line);
@@ -112,45 +110,33 @@ void page_write(struct Window *file, size_t line)
 	i = 0; // Iteration.
 	j = 0; // Row count.
 	k = 0; // Count of char used in line, for no wrap.
-	l = 0; // Total length for write().
-	io = 0; // In UTF-8 char, do not stop line yet.
+	l = 0; // Total length, required for write().
 
 	for ( ; i < screen.len && j < screen.row-OFFSET; i++)
 
-		/* -OFFSET cursor line and page header */
+		/* -OFFSET for cursor line and page header */
 		if (*f_pt != '\0') {
-			/* No line wrap */
 			if (k < screen.col)
 			{
-				if (!(k += test_utf8(*f_pt)))
-					io = IN;
-				else
-					io = OUT;
+				/* k++ if compleet UTF-8 character */
+				k += test_utf8((unsigned)*f_pt);
 				*d_pt++ = *f_pt++, l++;
 			}
-			else if (k >= screen.col && io == IN)
+			else if (k >= screen.col)
 			{
-				if (k += test_utf8(*f_pt)) {
-					io = OUT;
-					if (*f_pt == '\n')
-						*d_pt++ = *f_pt++, l++;
-				} else
+				if (*f_pt == '\n')
 					*d_pt++ = *f_pt++, l++;
+				else
+					f_pt++;
 			}
-			else if (*f_pt == '\n')
-				*d_pt++ = *f_pt++, l++;
-			else
-				f_pt++;
 			if (*f_pt == '\n')
 				j++, k = 0;
 		} else
 			*d_pt++ = '\n', j++, l++;
 
-	/* New line for cursor input */
+	/* Newline for cursor input */
 	*d_pt++ = '\n', l++;
-
-	l += sprintf(d_pt, "rows -> %u: ", screen.row);
-
+	l += sprintf(d_pt, "rows -> %u cols -> %u : ", screen.row, screen.col);
 	screen.current_len = l;
 }
 
@@ -170,7 +156,7 @@ struct Screen *init_screen(void)
 	if (!(get_dimensions(&screen)))
 		printf("error:	get_dimensions failed in init_screen\n");
 
-	screen.display = malloc((screen.len * sizeof(int))+1);
+	screen.display = malloc((screen.len * sizeof(int))*4+1);
 	clear_screen();
 
 	return &screen;

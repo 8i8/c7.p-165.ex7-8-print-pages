@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-	struct Window *files;
+	struct Window *portfolio;
 	int i, c, flags, input;
 
 	/* input flags */
@@ -21,25 +21,25 @@ int main(int argc, char *argv[])
 			}
 		}
 
-	/* input files */
+	/* input portfolio */
 	if (argc > 1)
 	{
 		input = argc-1-flags;
-		files = init_folio(input);
+		portfolio = init_folio(input);
 		init_screen();
 
 		for (i = 1; i < argc; i++)
 			if (*argv[i] != '-')
-				if ((files = scan_files(files, argv[i], input)) == NULL)
+				if ((portfolio = scan_files(portfolio, argv[i], input)) == NULL)
 					printf("usage: %s <file1> <file2> ...\n", argv[0]);
 		c = START;
 
 		do {
-			get_input(files, c);
+			get_input(portfolio, c);
 			blit_screen();
 		} while ((c = readchar()) != EOF && c != 'q');
 
-		free_folio(files, input);
+		free_folio(portfolio, input);
 		free_screen();
 	} else
 		printf("usage: %s <file1> <file2> ...\n", argv[0]);

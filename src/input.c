@@ -29,7 +29,7 @@ int readchar(void)
 /**
  * get_input:	Keyboard input.
  */
-void get_input(struct Window *files, int c)
+void get_input(struct Window *portfolio, int c)
 {
 	if (c == '\033') {
 		readchar();
@@ -38,15 +38,15 @@ void get_input(struct Window *files, int c)
 
 	switch (c)
 	{
-		case START: page_write(&files[0], START);
+		case START: page_write(&portfolio[0], START);
 			  break;
-		case 'k': page_write(&files[0], UP);
+		case 'k': page_write(&portfolio[0], UP);
 			  break;
-		case 'A': page_write(&files[0], UP);
+		case 'A': page_write(&portfolio[0], UP);
 			  break;
-		case 'j': page_write(&files[0], DOWN);
+		case 'j': page_write(&portfolio[0], DOWN);
 			  break;
-		case 'B': page_write(&files[0], DOWN);
+		case 'B': page_write(&portfolio[0], DOWN);
 			  break;
 		default: 
 			  break;

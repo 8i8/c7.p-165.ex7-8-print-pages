@@ -75,20 +75,20 @@ int read_file(struct Window *folio)
 /**
  * scan_files:	Treat every file in argv[] list.
  */
-struct Window *scan_files(struct Window *book, char* file_name, int num_of_files)
+struct Window *scan_files(struct Window *portfolio, char* file_name, int num_of_files)
 {
 	static int b_pt;
 	
 	if (b_pt < num_of_files) {
-		if ((book[b_pt].fp = fopen(file_name, "r")) == NULL)
+		if ((portfolio[b_pt].fp = fopen(file_name, "r")) == NULL)
 			return NULL;
-		book[b_pt].name = file_name;
-		if (read_file(&book[b_pt++]))
+		portfolio[b_pt].name = file_name;
+		if (read_file(&portfolio[b_pt++]))
 			printf("error:	read_file error in scan_files.\n");
 	} else
 		printf("error: to many files for current configuration.\n");
 
-	return book;
+	return portfolio;
 }
 
 /**
