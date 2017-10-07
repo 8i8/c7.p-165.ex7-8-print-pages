@@ -10,8 +10,6 @@ int main(int argc, char *argv[])
 	struct Nav *nav = NULL;
 	int i, c, flags, input;
 
-	getchar();
-
 	/* input flags */
 	for (i = 1, flags = 0; i < argc; i++)
 		if (*argv[i] == '-') {
