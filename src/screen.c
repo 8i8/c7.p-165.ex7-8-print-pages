@@ -3,7 +3,6 @@
 #include <sys/ioctl.h>
 #include <string.h>
 
-#define OFFSET		1		/* Offset cursor and header line */
 #define FOUR_BYTES	30		/* Test for UTF-8 width */
 #define THREE_BYTES	14
 #define TWO_BYTES	6
@@ -36,36 +35,11 @@ void clear_screen(void)
 }
 
 /**
- * advance_to:	Advance to the specified line.
+ * get_row: Returns screen row count.
  */
-char *advance_to(struct Window *file, size_t move)
+int get_row(void)
 {
-	size_t i, j;
-	char *fp;
-	static size_t start;
-	fp = file->content;
-
-	/* OFFSET, account for the cursor and static display elements */
-	switch (move)
-	{
-		case START: start = 0;
-			break;
-		case UP: if (start >= screen.row-OFFSET)
-				start -= screen.row-OFFSET;
-			break;
-		case DOWN: if (start < (file->lines)-screen.row-OFFSET
-					   && file->lines > screen.row-OFFSET)
-				start += screen.row-OFFSET;
-			break;
-		default:
-			break;
-	}
-
-	/* advance */
-	for (i = 0, j = 0; i < file->len && j < start; i++)
-		if (*(fp++) == '\n')
-			j++;
-	return fp;
+	return screen.row;
 }
 
 /**
@@ -108,21 +82,25 @@ unsigned test_utf8(unsigned char a)
  * screen struct contains a char* string that is printed to screen when the
  * command is given, the folio struct is a files textual content, copied
  * whilst truncating any lines that are longer than the screen is wide.
- * Maintaining the position by way of the line number is the advance_to()
+ * Maintaining the position by way of the line number is the navigate()
  * function, used to scroll page by page through the document.
  */
-void page_write(struct Window *file, size_t line)
+int page_content(struct Window *file, short key_press)
 {
+	struct Screen *sc = &screen;
 	size_t i, row, col;
 	char *f_pt, *d_pt, *count;
-	d_pt = count = screen.display;
-	f_pt = advance_to(file, line);
 	row = col = 0;
 
+	d_pt = count = sc->display;
+	if ((i = navigate(file, sc, key_press)))
+		return i;
+	f_pt = file->head;
+
 	/* -OFFSET for cursor line and page header */
-	for (i = 0 ; i < screen.len && row < screen.row-OFFSET; i++)
+	for (i = 0 ; i < sc->len && row < sc->row-OFFSET; i++)
 		if (*f_pt != '\0') {
-			if (col < screen.col) {
+			if (col < sc->col) {
 				col += test_utf8((unsigned)*f_pt);
 				*d_pt++ = *f_pt++;
 			} else {
@@ -136,8 +114,13 @@ void page_write(struct Window *file, size_t line)
 		} else
 			*d_pt++ = '\n', row++;
 
-	d_pt += sprintf(d_pt, "rows -> %u cols -> %u : ", screen.row, screen.col);
-	screen.current_len = d_pt - count;
+	d_pt += sprintf(d_pt, "%s ~ Page %lu of %lu",
+					file->name,
+					file->cur_page,
+					file->total_pages);
+	sc->current_len = d_pt - count;
+
+	return 0;
 }
 
 /**
@@ -157,7 +140,6 @@ struct Screen *init_screen(void)
 		printf("error:	get_dimensions failed in init_screen\n");
 
 	screen.display = malloc((screen.len * sizeof(char))+1);
-	//clear_screen();
 
 	return &screen;
 }

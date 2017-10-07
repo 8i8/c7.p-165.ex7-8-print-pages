@@ -2,11 +2,16 @@
 
 struct Window {
 	FILE *fp;
-	char *name;
-	char *content;
-	char *c_pt;
-	size_t lines;
-	size_t len;
+	char *name;			/* argv[] */
+	char *content;			/* Pointer to files content on the heap */
+	char *c_pt;			/* Same as the above to free memory */
+	char *head;			/* Current pointer position in file */
+	char **map_pos;			/* array of new line addresses */
+	size_t lines;			/* Line count of file */
+	size_t len;			/* Lenth in char of file */
+	size_t cur_page;		/* Current page number */
+	size_t cur_pos;			/* Current line number */
+	size_t total_pages;		/* Total number of pages */
 };
 
 struct Screen{
