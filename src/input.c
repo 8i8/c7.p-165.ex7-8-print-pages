@@ -108,9 +108,8 @@ void get_input(struct Window *portfolio, struct Nav *nav, int c)
  * more efficient by holding the last position of the char star pointer and
  * moving from there.
  */
-int navigate(struct Window *file, struct Screen *sc, short move)
+int navigate(struct Window *file, short move)
 {
-	size_t i, j;
 	size_t start;
 	start = file->cur_pos;
 
@@ -119,44 +118,21 @@ int navigate(struct Window *file, struct Screen *sc, short move)
 	{
 		case START: start = 0, file->cur_page = 1;
 			break;
-		case UP:// if (start >= sc->row-OFFSET) {
-			//	start -= sc->row-OFFSET;
-			// 	file->cur_page--;
-			//	//for (j = 0; j < sc->row-OFFSET; --file->head)
-			//	//	if (*file->head == '\n' || file->head == file->c_pt)
-			//	//		j++;
-			if (file->cur_page > 1) {
-				file->head = file->map_pos[--file->cur_page];
-			} else
+		case UP: if (file->cur_page > 1)
+				file->head = file->map_pos[(--file->cur_page)-1];
+			else
 				return 1;
 			break;
-		case DOWN:// if (start < file->lines - sc->row-OFFSET
-			 //       	   && file->lines > sc->row-OFFSET) {
-			 //       start += sc->row-OFFSET;
-			 //	file->cur_page++;
-				//for (j = 0; j < sc->row-OFFSET; )
-				//	if (*file->head++ == '\n')
-				//		j++;
-			if (file->cur_page < file->total_pages) {
-				file->head = file->map_pos[++file->cur_page];
-			} else
+		case DOWN: if (file->cur_page < file->total_pages)
+				file->head = file->map_pos[(++file->cur_page)-1];
+			else
 				return 2;
-			break;
-		case LEFT:
-			break;
-		case RIGHT:
 			break;
 		default:
 			break;
 	}
 
 	file->cur_pos = start;
-
-	/* advance to next page */
-	//file->head = file->c_pt;
-	//for (i = 0, j = 0; i < file->len && j < start; i++)
-	//	if (*file->head++ == '\n')
-	//		j++;
 
 	return 0;
 }

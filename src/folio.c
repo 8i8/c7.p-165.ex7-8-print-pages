@@ -9,7 +9,6 @@ struct Window *define_folio(struct Window *folio)
 {
 	folio->fp = NULL;
 	folio->name = NULL;
-	folio->content = NULL;
 	folio->c_pt = NULL;
 	folio->head = NULL;
 	folio->lines = 0;
@@ -62,34 +61,33 @@ int read_file(struct Window *folio)
 
 	rows = get_row();
 
-	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL)
+	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
 		printf("error:	mallloc failed to assign memory to temp in read_file().");
+		exit(1);
+	}
 
 	if (folio->fp == NULL) {
 		printf("error:	fp recieved by read_file() is NULL.\n");
-		return 1;
+		exit(1);
 	}
+
 	folio->len = file_size(folio->fp);
 	folio->head = folio->c_pt = pt = malloc((folio->len * sizeof(int))+1);
+	folio->lines = 1;
 
 	i = 0;
 	temp[i++] = pt;
+
 	while ((c = fgetc(folio->fp)) != EOF) {
 		d = c;
-		if ( c  == '\n') {
-			if (folio->lines % rows == 0)
-				temp[i++] = pt;
-			folio->lines++;
-		}
+		if (c == '\n' && folio->lines++ % (rows-OFFSET) == 0)
+			temp[i++] = pt+1;
 		*pt++ = c;
 	}
-
-	if (d != '\n') {
+	if (d != '\n')
 		folio->lines++;
-	}
 
 	/* add one to correct index offset */
-	folio->lines++;
 	*pt = '\0';
 	fclose(folio->fp);
 
@@ -111,7 +109,7 @@ int read_file(struct Window *folio)
 struct Window *scan_files(struct Window *portfolio, struct Nav *nav, char* file_name, int num_of_files)
 {
 	static int b_pt;
-	
+
 	if (b_pt < num_of_files) {
 		if ((portfolio[b_pt].fp = fopen(file_name, "r")) == NULL)
 			return NULL;
@@ -137,6 +135,5 @@ void free_folio(struct Window *files, size_t num)
 		free(files[i].map_pos);
 	}
 	free(files);
-
 }
 

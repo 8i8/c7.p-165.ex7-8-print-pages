@@ -93,7 +93,7 @@ int page_content(struct Window *file, short key_press)
 	row = col = 0;
 
 	d_pt = count = sc->display;
-	if ((i = navigate(file, sc, key_press)))
+	if ((i = navigate(file, key_press)))
 		return i;
 	f_pt = file->head;
 
