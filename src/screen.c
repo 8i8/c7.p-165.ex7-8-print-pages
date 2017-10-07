@@ -42,6 +42,11 @@ int get_row(void)
 	return screen.row;
 }
 
+void last_page(struct Window *file)
+{
+	file->head = file->map_pos[file->map_pt];
+}
+
 /**
  * utf8_word_length:	Return multi-char length (-1) in bytes, read from the
  * initial UTF-8 char.
@@ -85,7 +90,7 @@ unsigned test_utf8(unsigned char a)
  * Maintaining the position by way of the line number is the navigate()
  * function, used to scroll page by page through the document.
  */
-int page_content(struct Window *file, short key_press)
+int page_content(struct Window *file, short key_press, short last)
 {
 	struct Screen *sc = &screen;
 	size_t i, row, col;
@@ -93,7 +98,7 @@ int page_content(struct Window *file, short key_press)
 	row = col = 0;
 
 	d_pt = count = sc->display;
-	if ((i = navigate(file, key_press)))
+	if ((i = navigate(file, key_press, last)))
 		return i;
 	f_pt = file->head;
 

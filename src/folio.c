@@ -11,6 +11,8 @@ struct Window *define_folio(struct Window *folio)
 	folio->name = NULL;
 	folio->c_pt = NULL;
 	folio->head = NULL;
+	folio->map_pos = NULL;
+	folio->map_pt = 0;
 	folio->lines = 0;
 	folio->len = 0;
 	folio->cur_page = 0;
@@ -84,6 +86,7 @@ int read_file(struct Window *folio)
 			temp[i++] = pt+1;
 		*pt++ = c;
 	}
+	folio->map_pt = --i;
 	if (d != '\n')
 		folio->lines++;
 
