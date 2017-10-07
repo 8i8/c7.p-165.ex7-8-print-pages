@@ -76,6 +76,7 @@ void get_input(struct Window *portfolio, struct Nav *nav, int c)
 			  break;
 		case 'k': if ((turn_page = page_content(&portfolio[nav->f_active], UP, NO))) {
 				if (!next_file(nav, LEFT)) {
+					portfolio[nav->f_active].cur_page = portfolio[nav->f_active].total_pages;
 					last_page(&portfolio[nav->f_active]);
 					page_content(&portfolio[nav->f_active], LEFT, YES);
 				}
@@ -83,6 +84,7 @@ void get_input(struct Window *portfolio, struct Nav *nav, int c)
 			  break;
 		case 'A': if ((turn_page = page_content(&portfolio[nav->f_active], UP, NO))) {
 				if (!next_file(nav, LEFT)) {
+					portfolio[nav->f_active].cur_page = portfolio[nav->f_active].total_pages;
 					last_page(&portfolio[nav->f_active]);
 					page_content(&portfolio[nav->f_active], LEFT, YES);
 				}
