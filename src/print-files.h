@@ -9,26 +9,26 @@ enum question { NO, YES };
 /* init */
 struct Screen *init_screen(void);
 struct Nav *init_nav(struct Nav *nav);
-struct Window *init_folio(const unsigned int num);
+struct Folio *init_folio(const unsigned int num);
 
 /* screen.c */
 void blit_screen(void);
 void free_screen(void);
-int page_content(struct Window *file, const short key_press, const short last);
-void open_last_page(struct Window *file);
+int page_content(struct Folio *file, const short key_press, const short last);
+void open_last_page(struct Folio *file);
 int get_row(void);
 
 /* folio.c */
-struct Window *scan_files(
-		struct Window *portfolio,
+struct Folio *scan_files(
+		struct Folio *portfolio,
 		struct Nav *nav,
 		char* file_name,
 		const int num_of_files);
-void free_folio(struct Window *files, const size_t num);
+void free_folio(struct Folio *files, const size_t num);
 
 /* input.c */
-void get_input(struct Window *portfolio, struct Nav *nav, int c);
+void get_input(struct Folio *portfolio, struct Nav *nav, int c);
 int readchar(void);
 void free_nav(struct Nav *nav);
-int navigate(struct Window *file, const short move, const short last);
+int navigate(struct Folio *file, const short move, const short last);
 

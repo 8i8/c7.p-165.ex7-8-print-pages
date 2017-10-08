@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 /**
- * init_nav:	Returns nav struct to main for use as a holder for navigational
+ * init_nav:	Returns nav struct to main for use in parsing navigational
  * information.
  */
 struct Nav *init_nav(struct Nav *nav)
@@ -40,7 +40,8 @@ int readchar(void)
 }
 
 /**
- * next_file:	Set next to the desired file number in nav struct.
+ * next_file:	Set the desired file number in nav struct, used when changing
+ * the dislayed file.
  */
 short next_file(struct Nav *nav, short next)
 {
@@ -60,10 +61,10 @@ short next_file(struct Nav *nav, short next)
 
 /**
  * turn_page:	Called when the file navigation reaches an extremity, if there
- * is a file before or after in the direction being traveled, move to the
- * relevant page.
+ * is a file before or after the present, in the direction being traveled, move
+ * to the relevant page in that file, eiter the first or last page of that file.
  */
-void turn_page(struct Window *pf, struct Nav *nav, short dir, short end)
+void turn_page(struct Folio *pf, struct Nav *nav, short dir, short end)
 {
 	if (dir == LEFT) {
 		if (!next_file(nav, LEFT)) {
@@ -80,7 +81,7 @@ void turn_page(struct Window *pf, struct Nav *nav, short dir, short end)
 /**
  * get_input:	Keyboard input.
  */
-void get_input(struct Window *portfolio, struct Nav *nav, int c)
+void get_input(struct Folio *portfolio, struct Nav *nav, int c)
 {
 	if (c == '\033') {
 		readchar();
@@ -123,7 +124,7 @@ void get_input(struct Window *portfolio, struct Nav *nav, int c)
 /**
  * navigate:	Set file->head to the position required for printing to screen.
  */
-int navigate(struct Window *file, const short move, const short last)
+int navigate(struct Folio *file, const short move, const short last)
 {
 	size_t start;
 	start = file->cur_pos;

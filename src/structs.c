@@ -5,7 +5,7 @@ struct Nav {
 	size_t f_active;		/* File curently being read */
 };
 
-struct Window {
+struct Folio {
 	FILE *fp;
 	char *name;			/* argv[] */
 	char *content;			/* Pointer to files content on the heap */

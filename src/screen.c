@@ -12,7 +12,7 @@ enum inout { OUT, IN };
 static struct Screen screen;
 
 /**
- * get_dimensions:	Set screen size from ioctl.
+ * get_dimensions:	Get screen current dimentions from ioctl.
  */
 int get_dimensions(struct Screen *sc)
 {
@@ -21,7 +21,7 @@ int get_dimensions(struct Screen *sc)
 		return 0;
 	sc->col = win.ws_col;
 	sc->row = win.ws_row;
-	sc->len = sc->col * sc->row * 4;	// 4 to allow for UTF-8
+	sc->len = sc->col * sc->row * 4;	// * 4 for UTF-8 char
 	sc->current_len = 0;
 	return 1;
 }
@@ -34,7 +34,11 @@ int get_row(void)
 	return screen.row;
 }
 
-void open_last_page(struct Window *file)
+/**
+ * open_last_page:	Get the page number of the last page and set it to be
+ * read.
+ */
+void open_last_page(struct Folio *file)
 {
 	file->head = file->map_pos[file->map_pt];
 }
@@ -77,7 +81,7 @@ unsigned test_utf8(const unsigned char a)
 /**
  * page_write:	Write one page of file into screen struct.
  */
-int page_content(struct Window *file, const short key_press, const short last)
+int page_content(struct Folio *file, const short key_press, const short last)
 {
 	struct Screen *sc = &screen;
 	size_t i, row, col;
@@ -136,6 +140,10 @@ struct Screen *init_screen(void)
 	return &screen;
 }
 
+/**
+ * free_screen:	Your screen has been enslaved in the most unjust fashion, this
+ * function has the power to free it of its burden.
+ */
 void free_screen(void)
 {
 	free(screen.display);

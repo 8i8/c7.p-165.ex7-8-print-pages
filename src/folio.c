@@ -5,7 +5,10 @@
 
 static unsigned int num_of_files;
 
-struct Window *define_folio(struct Window *folio)
+/**
+ * define_folio:	Fill a folio with naught.
+ */
+struct Folio *define_folio(struct Folio *folio)
 {
 	folio->fp = NULL;
 	folio->name = NULL;
@@ -22,16 +25,16 @@ struct Window *define_folio(struct Window *folio)
 }
 
 /**
- * init_folio:	Assign memory for array.
+ * init_folio:	Assign memory for array of folio structs.
  */
-struct Window *init_folio(const unsigned int num)
+struct Folio *init_folio(const unsigned int num)
 {
-	struct Window *book, *pt;
+	struct Folio *book, *pt;
 	size_t i;
 	num_of_files = num;
 
-	if ((book = pt = malloc(num * sizeof(struct Window))) == NULL)
-		printf("error: malloc failed in init_folio() ~ Window.\n");
+	if ((book = pt = malloc(num * sizeof(struct Folio))) == NULL)
+		printf("error: malloc failed in init_folio() ~ Folio.\n");
 
 	for (i = 0; i < num; i++, book++)
 		book = define_folio(book);
@@ -54,7 +57,7 @@ static size_t file_size(FILE *fp)
 /**
  * read_file:	Copy file into programs heap memory.
  */
-int read_file(struct Window *folio)
+int read_file(struct Folio *folio)
 {
 	size_t i;
 	int c, d, rows;
@@ -111,8 +114,8 @@ int read_file(struct Window *folio)
 /**
  * scan_files:	Treat every file in argv[] list.
  */
-struct Window *scan_files(
-		struct Window *portfolio,
+struct Folio *scan_files(
+		struct Folio *portfolio,
 		struct Nav *nav,
 		char* file_name,
 		const int num_of_files)
@@ -136,7 +139,7 @@ struct Window *scan_files(
 /**
  * free_folio:	free files memory.
  */
-void free_folio(struct Window *files, const size_t num)
+void free_folio(struct Folio *files, const size_t num)
 {
 	size_t i;
 	for (i = 0; i < num; i++) {
