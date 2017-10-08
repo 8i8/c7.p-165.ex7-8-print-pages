@@ -137,7 +137,7 @@ struct Folio *scan_files(
 }
 
 /**
- * free_folio:	free files memory.
+ * free_folio:	Free leaves everywhere.
  */
 void free_folio(struct Folio *files, const size_t num)
 {

@@ -157,7 +157,9 @@ int navigate(struct Folio *file, const short move, const short last)
 }
 
 /**
- * free_nav:
+ * free_nav:	That is right, the nav are underattack and have been trapped
+ * here in this function. Your task ... Should you accept it, to free all the
+ * navi; By smply remembering to call this function.
  */
 void free_nav(struct Nav *nav)
 {

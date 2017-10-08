@@ -141,8 +141,7 @@ struct Screen *init_screen(void)
 }
 
 /**
- * free_screen:	Your screen has been enslaved in the most unjust fashion, this
- * function has the power to free it of its burden.
+ * free_screen:	Get your free screen here.
  */
 void free_screen(void)
 {
