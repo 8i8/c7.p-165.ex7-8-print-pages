@@ -77,6 +77,8 @@ int read_file(struct Window *folio)
 	folio->head = folio->c_pt = pt = malloc((folio->len * sizeof(int))+1);
 	folio->lines = 1;
 
+	/* Whilst copying the file into memory store the address of each new
+	 * line in an array of char* */
 	i = 0;
 	temp[i++] = pt;
 
@@ -86,11 +88,11 @@ int read_file(struct Window *folio)
 			temp[i++] = pt+1;
 		*pt++ = c;
 	}
+
 	folio->map_pt = --i;
 	if (d != '\n')
 		folio->lines++;
 
-	/* add one to correct index offset */
 	*pt = '\0';
 	fclose(folio->fp);
 
