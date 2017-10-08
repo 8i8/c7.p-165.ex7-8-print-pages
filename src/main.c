@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
 {
 	struct Folio *portfolio;
 	struct Nav *nav = NULL;
-	struct Screen *sc;
 	int i, c, flags, input;
 
 	/* input flags */
@@ -39,7 +38,7 @@ int main(int argc, char *argv[])
 	/* input portfolio */
 	if (argc > 1)
 	{
-		sc = init_screen();
+		init_screen();
 		input = argc-1-flags;
 		portfolio = init_folio(input);
 		nav = init_nav(nav);
