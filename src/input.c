@@ -4,8 +4,8 @@
 #include <unistd.h>
 
 /**
- * init_nav:	Sends out nav struct to main for use as a marker for
- * navigational information.
+ * init_nav:	Returns nav struct to main for use as a holder for navigational
+ * information.
  */
 struct Nav *init_nav(struct Nav *nav)
 {
@@ -17,7 +17,7 @@ struct Nav *init_nav(struct Nav *nav)
 }
 
 /**
- * readchar:	Direct input using raw mode, to deal with arrow keys.
+ * readchar:	Read stdin in raw mode, to deal with arrow keys.
  */
 int readchar(void)
 {
@@ -40,7 +40,7 @@ int readchar(void)
 }
 
 /**
- * next_file:	Set next file number in nav struct.
+ * next_file:	Set next to the desired file number in nav struct.
  */
 short next_file(struct Nav *nav, short next)
 {
@@ -59,12 +59,29 @@ short next_file(struct Nav *nav, short next)
 }
 
 /**
+ * turn_page:	Called when the file navigation reaches an extremity, if there
+ * is a file before or after in the direction being traveled, move to the
+ * relevant page.
+ */
+void turn_page(struct Window *pf, struct Nav *nav, short dir, short end)
+{
+	if (dir == LEFT) {
+		if (!next_file(nav, LEFT)) {
+			pf[nav->f_active].cur_page = pf[nav->f_active].total_pages;
+			open_last_page(&pf[nav->f_active]);
+			page_content(&pf[nav->f_active], dir, end);
+		}
+	} else if (dir == RIGHT) {
+		next_file(nav, RIGHT);
+		page_content(&pf[nav->f_active], dir, end);
+	}
+}
+
+/**
  * get_input:	Keyboard input.
  */
 void get_input(struct Window *portfolio, struct Nav *nav, int c)
 {
-	short turn_page;
-
 	if (c == '\033') {
 		readchar();
 		c = readchar();
@@ -74,31 +91,17 @@ void get_input(struct Window *portfolio, struct Nav *nav, int c)
 	{
 		case START: page_content(&portfolio[nav->f_active], START, NO);
 			  break;
-		case 'k': if ((turn_page = page_content(&portfolio[nav->f_active], UP, NO))) {
-				if (!next_file(nav, LEFT)) {
-					portfolio[nav->f_active].cur_page = portfolio[nav->f_active].total_pages;
-					last_page(&portfolio[nav->f_active]);
-					page_content(&portfolio[nav->f_active], LEFT, YES);
-				}
-			  }
+		case 'k': if ((page_content(&portfolio[nav->f_active], UP, NO)))
+				  turn_page(portfolio, nav, LEFT, YES);
 			  break;
-		case 'A': if ((turn_page = page_content(&portfolio[nav->f_active], UP, NO))) {
-				if (!next_file(nav, LEFT)) {
-					portfolio[nav->f_active].cur_page = portfolio[nav->f_active].total_pages;
-					last_page(&portfolio[nav->f_active]);
-					page_content(&portfolio[nav->f_active], LEFT, YES);
-				}
-			  }
+		case 'A': if ((page_content(&portfolio[nav->f_active], UP, NO)))
+				  turn_page(portfolio, nav, LEFT, YES);
 			  break;
-		case 'j': if ((turn_page = page_content(&portfolio[nav->f_active], DOWN, NO))) {
-				next_file(nav, RIGHT);
-				page_content(&portfolio[nav->f_active], RIGHT, NO);
-			  }
+		case 'j': if ((page_content(&portfolio[nav->f_active], DOWN, NO)))
+				  turn_page(portfolio, nav, RIGHT, NO);
 			  break;
-		case 'B': if ((turn_page = page_content(&portfolio[nav->f_active], DOWN, NO))) {
-				next_file(nav, RIGHT);
-				page_content(&portfolio[nav->f_active], RIGHT, NO);
-			  }
+		case 'B': if ((page_content(&portfolio[nav->f_active], DOWN, NO)))
+				  turn_page(portfolio, nav, RIGHT, NO);
 			  break;
 		case 'h': next_file(nav, LEFT);
 			  page_content(&portfolio[nav->f_active], LEFT, NO);
@@ -118,11 +121,9 @@ void get_input(struct Window *portfolio, struct Nav *nav, int c)
 }
 
 /**
- * navigate:	Advance to the specified line. TODO this code could be made
- * more efficient by holding the last position of the char star pointer and
- * moving from there.
+ * navigate:	Set file->head to the position required for printing to screen.
  */
-int navigate(struct Window *file, short move, short last)
+int navigate(struct Window *file, const short move, const short last)
 {
 	size_t start;
 	start = file->cur_pos;

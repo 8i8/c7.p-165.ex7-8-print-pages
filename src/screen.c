@@ -27,14 +27,6 @@ int get_dimensions(struct Screen *sc)
 }
 
 /**
- * clear_screen:
- */
-void clear_screen(void)
-{
-	write(1,"\033[H\033[J", 6);	/* Clear screen */
-}
-
-/**
  * get_row: Returns screen row count.
  */
 int get_row(void)
@@ -42,7 +34,7 @@ int get_row(void)
 	return screen.row;
 }
 
-void last_page(struct Window *file)
+void open_last_page(struct Window *file)
 {
 	file->head = file->map_pos[file->map_pt];
 }
@@ -51,7 +43,7 @@ void last_page(struct Window *file)
  * utf8_word_length:	Return multi-char length (-1) in bytes, read from the
  * initial UTF-8 char.
  */
-unsigned utf8_wordlength(unsigned char a)
+unsigned utf8_wordlength(const unsigned char a)
 {
 	if	(a >> 3 == FOUR_BYTES)
 		return 3;
@@ -65,7 +57,7 @@ unsigned utf8_wordlength(unsigned char a)
 /**
  * test_utf8:	Keep track of UTF-8 char count and status.
  */
-unsigned test_utf8(unsigned char a)
+unsigned test_utf8(const unsigned char a)
 {
 	static short unsigned count;
 
@@ -83,14 +75,9 @@ unsigned test_utf8(unsigned char a)
 }
 
 /**
- * page_write:	Write one page of file into screen struct, essentially the
- * screen struct contains a char* string that is printed to screen when the
- * command is given, the folio struct is a files textual content, copied
- * whilst truncating any lines that are longer than the screen is wide.
- * Maintaining the position by way of the line number is the navigate()
- * function, used to scroll page by page through the document.
+ * page_write:	Write one page of file into screen struct.
  */
-int page_content(struct Window *file, short key_press, short last)
+int page_content(struct Window *file, const short key_press, const short last)
 {
 	struct Screen *sc = &screen;
 	size_t i, row, col;

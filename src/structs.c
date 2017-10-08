@@ -1,5 +1,10 @@
 #include "print-files.h"
 
+struct Nav {
+	size_t f_count;			/* File index */
+	size_t f_active;		/* File curently being read */
+};
+
 struct Window {
 	FILE *fp;
 	char *name;			/* argv[] */

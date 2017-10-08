@@ -24,7 +24,7 @@ struct Window *define_folio(struct Window *folio)
 /**
  * init_folio:	Assign memory for array.
  */
-struct Window *init_folio(unsigned int num)
+struct Window *init_folio(const unsigned int num)
 {
 	struct Window *book, *pt;
 	size_t i;
@@ -64,12 +64,12 @@ int read_file(struct Window *folio)
 	rows = get_row();
 
 	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
-		printf("error:	mallloc failed to assign memory to temp in read_file().");
+		printf("error:	malloc failed to assign memory to temp in read_file().");
 		exit(1);
 	}
 
 	if (folio->fp == NULL) {
-		printf("error:	fp recieved by read_file() is NULL.\n");
+		printf("error:	The file pointer suppplied to read_file() is NULL.\n");
 		exit(1);
 	}
 
@@ -111,7 +111,11 @@ int read_file(struct Window *folio)
 /**
  * scan_files:	Treat every file in argv[] list.
  */
-struct Window *scan_files(struct Window *portfolio, struct Nav *nav, char* file_name, int num_of_files)
+struct Window *scan_files(
+		struct Window *portfolio,
+		struct Nav *nav,
+		char* file_name,
+		const int num_of_files)
 {
 	static int b_pt;
 
@@ -132,7 +136,7 @@ struct Window *scan_files(struct Window *portfolio, struct Nav *nav, char* file_
 /**
  * free_folio:	free files memory.
  */
-void free_folio(struct Window *files, size_t num)
+void free_folio(struct Window *files, const size_t num)
 {
 	size_t i;
 	for (i = 0; i < num; i++) {
