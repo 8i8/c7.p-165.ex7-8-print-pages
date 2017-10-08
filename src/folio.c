@@ -55,6 +55,15 @@ static size_t file_size(FILE *fp)
 }
 
 /**
+ * open_last_page:	Get the page number of the last page and set it to be
+ * read.
+ */
+void open_last_page(struct Folio *file)
+{
+	file->head = file->map_pos[file->map_pt];
+}
+
+/**
  * read_file:	Copy file into programs heap memory.
  */
 int read_file(struct Folio *folio)

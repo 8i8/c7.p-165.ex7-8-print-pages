@@ -70,11 +70,11 @@ void turn_page(struct Folio *pf, struct Nav *nav, short dir, short end)
 		if (!next_file(nav, LEFT)) {
 			pf[nav->f_active].cur_page = pf[nav->f_active].total_pages;
 			open_last_page(&pf[nav->f_active]);
-			page_content(&pf[nav->f_active], dir, end);
+			write_screen(&pf[nav->f_active], dir, end);
 		}
 	} else if (dir == RIGHT) {
 		next_file(nav, RIGHT);
-		page_content(&pf[nav->f_active], dir, end);
+		write_screen(&pf[nav->f_active], dir, end);
 	}
 }
 
@@ -90,31 +90,31 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c)
 
 	switch (c)
 	{
-		case START: page_content(&portfolio[nav->f_active], START, NO);
+		case START: write_screen(&portfolio[nav->f_active], START, NO);
 			  break;
-		case 'k': if ((page_content(&portfolio[nav->f_active], UP, NO)))
+		case 'k': if ((write_screen(&portfolio[nav->f_active], UP, NO)))
 				  turn_page(portfolio, nav, LEFT, YES);
 			  break;
-		case 'A': if ((page_content(&portfolio[nav->f_active], UP, NO)))
+		case 'A': if ((write_screen(&portfolio[nav->f_active], UP, NO)))
 				  turn_page(portfolio, nav, LEFT, YES);
 			  break;
-		case 'j': if ((page_content(&portfolio[nav->f_active], DOWN, NO)))
+		case 'j': if ((write_screen(&portfolio[nav->f_active], DOWN, NO)))
 				  turn_page(portfolio, nav, RIGHT, NO);
 			  break;
-		case 'B': if ((page_content(&portfolio[nav->f_active], DOWN, NO)))
+		case 'B': if ((write_screen(&portfolio[nav->f_active], DOWN, NO)))
 				  turn_page(portfolio, nav, RIGHT, NO);
 			  break;
 		case 'h': next_file(nav, LEFT);
-			  page_content(&portfolio[nav->f_active], LEFT, NO);
+			  write_screen(&portfolio[nav->f_active], LEFT, NO);
 			  break;
 		case 'C': next_file(nav, RIGHT);
-			  page_content(&portfolio[nav->f_active], RIGHT, NO);
+			  write_screen(&portfolio[nav->f_active], RIGHT, NO);
 			  break;
 		case 'l': next_file(nav, RIGHT);
-			  page_content(&portfolio[nav->f_active], RIGHT, NO);
+			  write_screen(&portfolio[nav->f_active], RIGHT, NO);
 			  break;
 		case 'D': next_file(nav, LEFT);
-			  page_content(&portfolio[nav->f_active], LEFT, NO);
+			  write_screen(&portfolio[nav->f_active], LEFT, NO);
 			  break;
 		default: 
 			  break;

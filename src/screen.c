@@ -35,15 +35,6 @@ int get_row(void)
 }
 
 /**
- * open_last_page:	Get the page number of the last page and set it to be
- * read.
- */
-void open_last_page(struct Folio *file)
-{
-	file->head = file->map_pos[file->map_pt];
-}
-
-/**
  * utf8_word_length:	Return multi-char length (-1) in bytes, read from the
  * initial UTF-8 char.
  */
@@ -79,9 +70,9 @@ unsigned test_utf8(const unsigned char a)
 }
 
 /**
- * page_write:	Write one page of file into screen struct.
+ * write_screen:	Write one page of file into screen struct.
  */
-int page_content(struct Folio *file, const short key_press, const short last)
+int write_screen(struct Folio *file, const short key_press, const short last)
 {
 	struct Screen *sc = &screen;
 	size_t i, row, col;

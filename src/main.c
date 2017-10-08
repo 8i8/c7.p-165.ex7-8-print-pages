@@ -1,6 +1,10 @@
 /*
+ * K&R edition 2
+ *
  * Exercise 7-8. Write a program to print a set of files, starting each new one
  * on a new page, with a title and a running page count for each file.
+ *
+ * <<< more_or_less >>>
  *
  * The program is designed to open several text files simultaneously, the user
  * can navigate these file using either the vim style nav bindings or the arrow
@@ -9,11 +13,10 @@
  *
  * essentially the screen struct contains a char* string which is printed to
  * screen after each navigation command given, the folio struct stores each
- * file supplied at runtime as argv[] inputs, textual content, this is copied
- * into the screen struct whilst truncating any lines that are longer than the
- * screen is wide. Maintaining the position in the file by way of the line
- * number the navigate() function, used to scroll page by page through the
- * document.
+ * file, which supplied at runtime as argv[] inputs, the textual content
+ * scanned and put into memory, this is copied into the screen struct, in part
+ * or in its entirety if the file is small enough, truncating any lines that
+ * are longer than the screen is wide.
  */
 #include "structs.c"
 
