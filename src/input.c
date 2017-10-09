@@ -1,7 +1,37 @@
 #include "structs.c"
 #include <termios.h>
+#include <ctype.h>
 #include <string.h>
 #include <unistd.h>
+
+/**
+ * get_flags:	Get input from and count flags.
+ */
+int get_flags(char *argv)
+{
+	size_t i;
+	int c;
+	i = 0;
+
+	while ((c = *(argv+(++i)) != isspace(c))) {
+		switch (c) {
+			case 'n': printf("Hello World.");
+				break;
+			default:
+				printf("usage: %s <file1> <file2> ...\n", argv);
+		}
+	}
+	return 1;
+}
+
+/**
+ * get_files:	Get input from each argv that is not a flag.
+ */
+void get_files(char *argv, struct Folio *pf, struct Nav *nav, int input)
+{
+	if ((pf = scan_files(pf, nav, argv, input)) == NULL)
+		printf("usage: %s <file1> <file2> ...\n", argv);
+}
 
 /**
  * init_nav:	Returns nav struct to main for use in parsing navigational
@@ -69,12 +99,15 @@ void turn_page(struct Folio *pf, struct Nav *nav, short dir, short end)
 	if (dir == LEFT) {
 		if (!next_file(nav, LEFT)) {
 			pf[nav->f_active].cur_page = pf[nav->f_active].total_pages;
-			open_last_page(&pf[nav->f_active]);
+			pf[nav->f_active].head = pf[nav->f_active].map_pos[pf[nav->f_active].map_pt];
 			write_screen(&pf[nav->f_active], dir, end);
 		}
 	} else if (dir == RIGHT) {
-		next_file(nav, RIGHT);
-		write_screen(&pf[nav->f_active], dir, end);
+		if (!next_file(nav, RIGHT)) {
+			pf[nav->f_active].cur_page = 1;
+			pf[nav->f_active].head = pf[nav->f_active].map_pos[0];
+			write_screen(&pf[nav->f_active], dir, end);
+		}
 	}
 }
 
@@ -99,10 +132,10 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c)
 				  turn_page(portfolio, nav, LEFT, YES);
 			  break;
 		case 'j': if ((write_screen(&portfolio[nav->f_active], DOWN, NO)))
-				  turn_page(portfolio, nav, RIGHT, NO);
+				  turn_page(portfolio, nav, RIGHT, YES);
 			  break;
 		case 'B': if ((write_screen(&portfolio[nav->f_active], DOWN, NO)))
-				  turn_page(portfolio, nav, RIGHT, NO);
+				  turn_page(portfolio, nav, RIGHT, YES);
 			  break;
 		case 'h': next_file(nav, LEFT);
 			  write_screen(&portfolio[nav->f_active], LEFT, NO);
@@ -143,9 +176,12 @@ int navigate(struct Folio *file, const short move, const short last)
 				return 1;
 			break;
 		case DOWN: if (file->cur_page < file->total_pages)
-				file->head = file->map_pos[(++file->cur_page)-1];
+				if (last)
+					file->head = file->map_pos[(file->cur_page)-1];
+				else
+					file->head = file->map_pos[(++file->cur_page)-1];
 			else
-				return 2;
+				return 1;
 			break;
 		default:
 			break;

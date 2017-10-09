@@ -12,6 +12,7 @@ struct Folio *define_folio(struct Folio *folio)
 {
 	folio->fp = NULL;
 	folio->name = NULL;
+	folio->f_name = NULL;
 	folio->c_pt = NULL;
 	folio->head = NULL;
 	folio->map_pos = NULL;
@@ -33,8 +34,10 @@ struct Folio *init_folio(const unsigned int num)
 	size_t i;
 	num_of_files = num;
 
-	if ((book = pt = malloc(num * sizeof(struct Folio))) == NULL)
+	if ((book = pt = malloc(num * sizeof(struct Folio))) == NULL) {
 		printf("error: malloc failed in init_folio() ~ Folio.\n");
+		exit(1);
+	}
 
 	for (i = 0; i < num; i++, book++)
 		book = define_folio(book);
@@ -52,15 +55,6 @@ static size_t file_size(FILE *fp)
 	len = (unsigned)ftell(fp);
 	rewind(fp);
 	return len;
-}
-
-/**
- * open_last_page:	Get the page number of the last page and set it to be
- * read.
- */
-void open_last_page(struct Folio *file)
-{
-	file->head = file->map_pos[file->map_pt];
 }
 
 /**
@@ -108,8 +102,12 @@ int read_file(struct Folio *folio)
 	*pt = '\0';
 	fclose(folio->fp);
 
-	/* store map of new lines */
-	folio->map_pos = malloc(folio->lines * sizeof(char*));
+	/* store map of page start addresses */
+	if ((folio->map_pos = malloc(folio->lines * sizeof(char*))) == NULL) {
+		printf("error:	malloc failed to allocate map_pos in read file.\n");
+		exit(1);
+	}
+
 	for (i = 0; i < folio->lines; i++)
 		folio->map_pos[i] = temp[i];
 	free(temp);
@@ -118,6 +116,19 @@ int read_file(struct Folio *folio)
 	folio->cur_page = 1;
 
 	return 0;
+}
+
+/**
+ * set_filename:	Remove path from filename.
+ */
+char *set_filename(char* file_name)
+{
+	char *name;
+
+	if ((name = strrchr(file_name, '/')) != NULL)
+		return ++name;
+
+	return file_name;
 }
 
 /**
@@ -135,6 +146,7 @@ struct Folio *scan_files(
 		if ((portfolio[b_pt].fp = fopen(file_name, "r")) == NULL)
 			return NULL;
 		portfolio[b_pt].name = file_name;
+		portfolio[b_pt].f_name = set_filename(file_name);
 		if (read_file(&portfolio[b_pt++]))
 			printf("error:	read_file error in scan_files.\n");
 	} else

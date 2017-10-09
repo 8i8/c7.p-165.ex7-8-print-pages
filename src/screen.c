@@ -1,7 +1,6 @@
 #include "structs.c"
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <string.h>
 
 #define FOUR_BYTES	30		/* Test for UTF-8 width */
 #define THREE_BYTES	14
@@ -72,17 +71,22 @@ unsigned test_utf8(const unsigned char a)
 /**
  * write_screen:	Write one page of file into screen struct.
  */
-int write_screen(struct Folio *file, const short key_press, const short last)
+int write_screen(
+		struct Folio *file,
+		const short key_pressed,
+		const short is_last)
 {
 	struct Screen *sc = &screen;
 	size_t i, row, col;
 	char *f_pt, *d_pt, *count;
 	row = col = 0;
 
-	d_pt = count = sc->display;
-	if ((i = navigate(file, key_press, last)))
+	if ((i = navigate(file, key_pressed, is_last)))
 		return i;
+
+	d_pt = count = sc->display;
 	f_pt = file->head;
+
 
 	/* -OFFSET for cursor line and page header */
 	for (i = 0 ; i < sc->len && row < sc->row-OFFSET; i++)
@@ -102,7 +106,7 @@ int write_screen(struct Folio *file, const short key_press, const short last)
 			*d_pt++ = '\n', row++;
 
 	d_pt += sprintf(d_pt, "%s ~ Page %lu of %lu",
-					file->name,
+					file->f_name,
 					file->cur_page,
 					file->total_pages);
 	sc->current_len = d_pt - count;

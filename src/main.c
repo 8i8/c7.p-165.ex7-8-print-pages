@@ -25,18 +25,12 @@ int main(int argc, char *argv[])
 	struct Folio *portfolio;
 	struct Nav *nav = NULL;
 	int i, c, flags, input;
+	c = START;
 
 	/* input flags */
 	for (i = 1, flags = 0; i < argc; i++)
-		if (*argv[i] == '-') {
-			c = *(argv[i]+1), flags++;
-			switch (c) {
-				case 'n': printf("Hello World.");
-					break;
-				default:
-					printf("usage: %s <file1> <file2> ...\n", argv[0]);
-			}
-		}
+		if (*argv[i] == '-')
+			flags += get_flags(argv[i]);
 
 	/* input portfolio */
 	if (argc > 1)
@@ -48,9 +42,7 @@ int main(int argc, char *argv[])
 
 		for (i = 1; i < argc; i++)
 			if (*argv[i] != '-')
-				if ((portfolio = scan_files(portfolio, nav, argv[i], input)) == NULL)
-					printf("usage: %s <file1> <file2> ...\n", argv[0]);
-		c = START;
+				get_files(argv[i], portfolio, nav, input);
 
 		do {
 			get_input(portfolio, nav, c);

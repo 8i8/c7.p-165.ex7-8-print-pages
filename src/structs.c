@@ -8,7 +8,7 @@ struct Nav {
 struct Folio {
 	FILE *fp;
 	char *name;			/* argv[] */
-	char *content;			/* Pointer to files content on the heap */
+	char *f_name;			/* argv[] */
 	char *c_pt;			/* Same as the above to free memory */
 	char *head;			/* Current pointer position in file */
 	char **map_pos;			/* array of new line addresses */
