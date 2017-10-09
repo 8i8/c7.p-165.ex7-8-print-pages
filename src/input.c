@@ -13,12 +13,13 @@ int get_flags(char *argv)
 	int c;
 	i = 0;
 
-	while ((c = *(argv+(++i)) != isspace(c))) {
+	while ((c = *(argv+(++i)) && !isspace(c))) {
 		switch (c) {
 			case 'n': printf("Hello World.");
 				break;
 			default:
-				printf("usage: %s <file1> <file2> ...\n", argv);
+				printf("error: flag '%c' unknown.\n", c);
+				break;
 		}
 	}
 	return 1;
@@ -29,8 +30,10 @@ int get_flags(char *argv)
  */
 void read_arg(char *argv, struct Folio *pf, struct Nav *nav, int input)
 {
-	if ((pf = write_to_heap(pf, nav, argv, input)) == NULL)
+	if ((pf = write_to_heap(pf, nav, argv, input)) == NULL) {
 		printf("usage: %s <file1> <file2> ...\n", argv);
+		exit(1);
+	}
 }
 
 /**
