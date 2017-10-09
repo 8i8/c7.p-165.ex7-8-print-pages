@@ -6,8 +6,6 @@
 #define THREE_BYTES	14
 #define TWO_BYTES	6
 
-enum inout { OUT, IN };
-
 static struct Screen screen;
 
 /**
