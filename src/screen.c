@@ -32,6 +32,9 @@ int get_row(void)
 	return screen.row;
 }
 
+/**
+ * set_tabwidth:	set the system tab width to specified ammount.
+ */
 void set_tabwidth(short width)
 {
 	char string[100] = { "tabs " };
