@@ -1,4 +1,5 @@
 #include "structs.c"
+#include <string.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 
@@ -29,6 +30,18 @@ int get_dimensions(struct Screen *sc)
 int get_row(void)
 {
 	return screen.row;
+}
+
+void set_tabwidth(short width)
+{
+	char string[100] = { "tabs " };
+	char num[2];
+	if (!(width < 13 && width >= 0)) {
+		printf("error:	tab width value in set_tabwidth().\n");
+		exit(1);
+	}
+	sprintf(num, "%d", width);
+	system(strcat(string, num));
 }
 
 /**
@@ -71,6 +84,7 @@ unsigned test_utf8(const unsigned char a)
  */
 int write_screen(
 		struct Folio *file,
+		const short tab,
 		const short key_pressed,
 		const short is_last)
 {
@@ -91,6 +105,8 @@ int write_screen(
 		if (*f_pt != '\0') {
 			if (col < sc->col) {
 				col += test_utf8((unsigned)*f_pt);
+				if (*f_pt == '\t' && tab)
+					col += tab-1;
 				*d_pt++ = *f_pt++;
 			} else {
 				if (*f_pt == '\n')

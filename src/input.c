@@ -25,11 +25,11 @@ int get_flags(char *argv)
 }
 
 /**
- * get_files:	Get input from each argv that is not a flag.
+ * read_arg:	Try to transcribe file into memory.
  */
-void get_files(char *argv, struct Folio *pf, struct Nav *nav, int input)
+void read_arg(char *argv, struct Folio *pf, struct Nav *nav, int input)
 {
-	if ((pf = scan_files(pf, nav, argv, input)) == NULL)
+	if ((pf = write_to_heap(pf, nav, argv, input)) == NULL)
 		printf("usage: %s <file1> <file2> ...\n", argv);
 }
 
@@ -94,19 +94,24 @@ short next_file(struct Nav *nav, short next)
  * is a file before or after the present, in the direction being traveled, move
  * to the relevant page in that file, eiter the first or last page of that file.
  */
-void turn_page(struct Folio *pf, struct Nav *nav, short dir, short end)
+void turn_page(
+		struct Folio *pf,
+		struct Nav *nav,
+		const short tab,
+		const short dir,
+		const short end)
 {
 	if (dir == LEFT) {
 		if (!next_file(nav, LEFT)) {
 			pf[nav->f_active].cur_page = pf[nav->f_active].total_pages;
 			pf[nav->f_active].head = pf[nav->f_active].map_pos[pf[nav->f_active].map_pt];
-			write_screen(&pf[nav->f_active], dir, end);
+			write_screen(&pf[nav->f_active], tab, dir, end);
 		}
 	} else if (dir == RIGHT) {
 		if (!next_file(nav, RIGHT)) {
 			pf[nav->f_active].cur_page = 1;
 			pf[nav->f_active].head = pf[nav->f_active].map_pos[0];
-			write_screen(&pf[nav->f_active], dir, end);
+			write_screen(&pf[nav->f_active], tab, dir, end);
 		}
 	}
 }
@@ -114,7 +119,7 @@ void turn_page(struct Folio *pf, struct Nav *nav, short dir, short end)
 /**
  * get_input:	Keyboard input.
  */
-void get_input(struct Folio *portfolio, struct Nav *nav, int c)
+void get_input(struct Folio *portfolio, struct Nav *nav, int c, const short tab)
 {
 	if (c == '\033') {
 		readchar();
@@ -123,31 +128,31 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c)
 
 	switch (c)
 	{
-		case START: write_screen(&portfolio[nav->f_active], START, NO);
+		case START: write_screen(&portfolio[nav->f_active], tab, START, NO);
 			  break;
-		case 'k': if ((write_screen(&portfolio[nav->f_active], UP, NO)))
-				  turn_page(portfolio, nav, LEFT, YES);
+		case 'k': if ((write_screen(&portfolio[nav->f_active], tab, UP, NO)))
+				  turn_page(portfolio, nav, tab, LEFT, YES);
 			  break;
-		case 'A': if ((write_screen(&portfolio[nav->f_active], UP, NO)))
-				  turn_page(portfolio, nav, LEFT, YES);
+		case 'A': if ((write_screen(&portfolio[nav->f_active], tab, UP, NO)))
+				  turn_page(portfolio, nav, tab, LEFT, YES);
 			  break;
-		case 'j': if ((write_screen(&portfolio[nav->f_active], DOWN, NO)))
-				  turn_page(portfolio, nav, RIGHT, YES);
+		case 'j': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, NO)))
+				  turn_page(portfolio, nav, tab, RIGHT, YES);
 			  break;
-		case 'B': if ((write_screen(&portfolio[nav->f_active], DOWN, NO)))
-				  turn_page(portfolio, nav, RIGHT, YES);
+		case 'B': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, NO)))
+				  turn_page(portfolio, nav, tab, RIGHT, YES);
 			  break;
 		case 'h': next_file(nav, LEFT);
-			  write_screen(&portfolio[nav->f_active], LEFT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, LEFT, NO);
 			  break;
 		case 'C': next_file(nav, RIGHT);
-			  write_screen(&portfolio[nav->f_active], RIGHT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, RIGHT, NO);
 			  break;
 		case 'l': next_file(nav, RIGHT);
-			  write_screen(&portfolio[nav->f_active], RIGHT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, RIGHT, NO);
 			  break;
 		case 'D': next_file(nav, LEFT);
-			  write_screen(&portfolio[nav->f_active], LEFT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, LEFT, NO);
 			  break;
 		default: 
 			  break;

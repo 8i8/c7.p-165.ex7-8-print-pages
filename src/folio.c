@@ -132,9 +132,9 @@ char *set_filename(char* file_name)
 }
 
 /**
- * scan_files:	Treat every file in argv[] list.
+ * write_to_heap:	Treat every file in argv[] list.
  */
-struct Folio *scan_files(
+struct Folio *write_to_heap(
 		struct Folio *portfolio,
 		struct Nav *nav,
 		char* file_name,
@@ -148,7 +148,7 @@ struct Folio *scan_files(
 		portfolio[b_pt].name = file_name;
 		portfolio[b_pt].f_name = set_filename(file_name);
 		if (read_file(&portfolio[b_pt++]))
-			printf("error:	read_file error in scan_files.\n");
+			printf("error:	read_file error in write_to_heap.\n");
 	} else
 		printf("error: to many files for current configuration.\n");
 

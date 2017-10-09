@@ -24,8 +24,9 @@ int main(int argc, char *argv[])
 {
 	struct Folio *portfolio;
 	struct Nav *nav = NULL;
-	int i, c, flags, input;
+	int i, c, flags, input, tab;
 	c = START;
+	tab = 8;
 
 	/* input flags */
 	for (i = 1, flags = 0; i < argc; i++)
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
 	/* input portfolio */
 	if (argc > 1)
 	{
+		set_tabwidth(tab);
 		init_screen();
 		input = argc-1-flags;
 		portfolio = init_folio(input);
@@ -42,10 +44,10 @@ int main(int argc, char *argv[])
 
 		for (i = 1; i < argc; i++)
 			if (*argv[i] != '-')
-				get_files(argv[i], portfolio, nav, input);
+				read_arg(argv[i], portfolio, nav, input);
 
 		do {
-			get_input(portfolio, nav, c);
+			get_input(portfolio, nav, c, tab);
 			blit_screen();
 		} while ((c = readchar()) != EOF && c != 'q');
 
