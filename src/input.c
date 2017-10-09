@@ -1,4 +1,4 @@
-#include "structs.c"
+#include "structs.h"
 #include <termios.h>
 #include <ctype.h>
 #include <string.h>
@@ -7,18 +7,17 @@
 /**
  * get_flags:	Get input from and count flags.
  */
-int get_flags(char *argv)
+int get_flags(const char *argv)
 {
-	size_t i;
-	int c;
-	i = 0;
+	char c;
 
-	while ((c = *(argv+(++i)) && !isspace(c))) {
+	while ((c = *++argv) && !isspace(c)) {
 		switch (c) {
-			case 'n': printf("Hello World.");
+			case 'n': printf("Hello World.\n");
 				break;
 			default:
 				printf("error: flag '%c' unknown.\n", c);
+				exit(1);
 				break;
 		}
 	}

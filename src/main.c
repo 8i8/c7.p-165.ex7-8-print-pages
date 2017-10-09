@@ -11,14 +11,14 @@
  * keys, j, k, <down> <up>, scroll up and down, and h, l <left> <right> jump to
  * either the next or the previous file.
  *
- * essentially the screen struct contains a char* string which is printed to
+ * essentially the screen struct.hontains a char* string which is printed to
  * screen after each navigation command given, the folio struct stores each
  * file, which supplied at runtime as argv[] inputs, the textual content
  * scanned and put into memory, this is copied into the screen struct, in part
  * or in its entirety if the file is small enough, truncating any lines that
  * are longer than the screen is wide.
  */
-#include "structs.c"
+#include "structs.h"
 
 int main(int argc, char *argv[])
 {
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
 				read_arg(argv[i], portfolio, nav, input);
 
 		do {
+			check_resize();
 			get_input(portfolio, nav, c, tab);
 			blit_screen();
 		} while ((c = readchar()) != EOF && c != 'q');

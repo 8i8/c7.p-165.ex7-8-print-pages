@@ -13,6 +13,7 @@ struct Nav *init_nav(struct Nav *nav);
 struct Folio *init_folio(const unsigned int num);
 
 /* screen.c */
+int check_resize(void);
 void blit_screen(void);
 void free_screen(void);
 void set_tabwidth(short width);
@@ -32,7 +33,7 @@ struct Folio *write_to_heap(
 void free_folio(struct Folio *files, const size_t num);
 
 /* input.c */
-int get_flags(char *argv);
+int get_flags(const char *argv);
 void read_arg(char *argv, struct Folio *pf, struct Nav *nav, int input);
 void get_input(struct Folio *portfolio, struct Nav *nav, int c, const short tab);
 int readchar(void);

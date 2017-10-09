@@ -1,4 +1,4 @@
-#include "structs.c"
+#include "structs.h"
 #include <string.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -15,13 +15,32 @@ static struct Screen screen;
 int get_dimensions(struct Screen *sc)
 {
 	struct winsize win;
-	if ((ioctl(0, TIOCGWINSZ, &win)) == -1)
-		return 0;
+	if ((ioctl(0, TIOCGWINSZ, &win)) == -1) {
+		printf("error:	ioctl TIOCGWINSZ failed in %s.\n", __func__);
+		exit(1);
+	}
 	sc->col = win.ws_col;
 	sc->row = win.ws_row;
 	sc->len = sc->col * sc->row * 4;	// * 4 for UTF-8 char
 	sc->current_len = 0;
 	return 1;
+}
+
+/**
+ * check_resize:	Check if terminal has been resized.
+ */
+int check_resize(void)
+{
+	struct winsize win;
+	if ((ioctl(0, TIOCGWINSZ, &win)) == -1) {
+		printf("error:	ioctl TIOCGWINSZ failed in %s.\n", __func__);
+		exit(1);
+	}
+
+	if (win.ws_col * win.ws_row * 4 == (int)screen.len)
+		return 0;
+
+	return get_dimensions(&screen);
 }
 
 /**
@@ -40,7 +59,7 @@ void set_tabwidth(short width)
 	char string[100] = { "tabs " };
 	char num[2];
 	if (!(width < 13 && width >= 0)) {
-		printf("error:	tab width value in set_tabwidth().\n");
+		printf("error:	tab width value in %s.\n", __func__);
 		exit(1);
 	}
 	sprintf(num, "%d", width);
@@ -102,7 +121,6 @@ int write_screen(
 	d_pt = count = sc->display;
 	f_pt = file->head;
 
-
 	/* -OFFSET for cursor line and page header */
 	for (i = 0 ; i < sc->len && row < sc->row-OFFSET; i++)
 		if (*f_pt != '\0') {
@@ -145,9 +163,9 @@ void blit_screen(void)
 struct Screen *init_screen(void)
 {
 	if (!(get_dimensions(&screen)))
-		printf("error:	get_dimensions failed in init_screen\n");
+		printf("error:	get_dimensions failed in %s\n", __func__);
 
-	screen.display = malloc((screen.len * sizeof(char))+1);
+	screen.display = malloc(screen.len+1);
 
 	return &screen;
 }

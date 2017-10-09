@@ -1,4 +1,4 @@
-#include "structs.c"
+#include "structs.h"
 #include <limits.h>
 
 #define BUFFER1		10000
@@ -35,7 +35,7 @@ struct Folio *init_folio(const unsigned int num)
 	num_of_files = num;
 
 	if ((book = pt = malloc(num * sizeof(struct Folio))) == NULL) {
-		printf("error: malloc failed in init_folio() ~ Folio.\n");
+		printf("error: malloc failed in %s ~ Folio.\n", __func__);
 		exit(1);
 	}
 
@@ -60,7 +60,7 @@ static size_t file_size(FILE *fp)
 /**
  * read_file:	Copy file into programs heap memory.
  */
-int read_file(struct Folio *folio)
+void read_file(struct Folio *folio)
 {
 	size_t i;
 	int c, d, rows;
@@ -70,12 +70,12 @@ int read_file(struct Folio *folio)
 	rows = get_row();
 
 	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
-		printf("error:	malloc failed to assign memory to temp in read_file().");
+		printf("error:	malloc failed to assign memory to temp in %s.", __func__);
 		exit(1);
 	}
 
 	if (folio->fp == NULL) {
-		printf("error:	The file pointer suppplied to read_file() is NULL.\n");
+		printf("error:	The file pointer supplied to %s is NULL.\n", __func__);
 		exit(1);
 	}
 
@@ -83,40 +83,53 @@ int read_file(struct Folio *folio)
 	folio->head = folio->c_pt = pt = malloc((folio->len * sizeof(int))+1);
 	folio->lines = 1;
 
-	/* Whilst copying the file into memory store the address of each new
-	 * line in an array of char* */
+	/* Whilst copying the file into memory store the address of the first
+	 * line of every new page in an array of char* */
 	i = 0;
 	temp[i++] = pt;
 
 	while ((c = fgetc(folio->fp)) != EOF) {
 		d = c;
 		if (c == '\n' && folio->lines++ % (rows-OFFSET) == 0)
-			temp[i++] = pt+1;
+			temp[i++] = pt+1;	/* +1 skip over the '\n' */
 		*pt++ = c;
 	}
 
-	folio->map_pt = --i;
+	folio->map_pt = i-1;	/* -1 for index */
 	if (d != '\n')
 		folio->lines++;
 
 	*pt = '\0';
 	fclose(folio->fp);
+	folio->total_pages = (folio->lines / get_row())+1;
+	folio->cur_page = 1;
 
-	/* store map of page start addresses */
-	if ((folio->map_pos = malloc(folio->lines * sizeof(char*))) == NULL) {
-		printf("error:	malloc failed to allocate map_pos in read file.\n");
+	/* store map of page addresses */
+	if ((folio->map_pos = malloc(folio->total_pages * sizeof(char*))) == NULL) {
+		printf("error:	malloc failed to allocate map_pos in %s.\n", __func__);
 		exit(1);
 	}
 
-	for (i = 0; i < folio->lines; i++)
+	for (i = 0; i < folio->total_pages; i++)
 		folio->map_pos[i] = temp[i];
 	free(temp);
-
-	folio->total_pages = (folio->lines / get_row()) + 1;
-	folio->cur_page = 1;
-
-	return 0;
 }
+
+/**
+ * refresh_pages:	Reset all page start pointers in page array.
+ */
+//void refresh_pages(struct Folio folio*)
+//{
+//	char *temp;
+//	int rows;
+//
+//	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
+//		printf("error:	malloc failed to assign memory to temp in %s.", __func__);
+//		exit(1);
+//	}
+//
+//	rows = get_row();
+//}
 
 /**
  * set_filename:	Remove path from filename.
@@ -143,14 +156,17 @@ struct Folio *write_to_heap(
 	static int b_pt;
 
 	if (b_pt < num_of_files) {
-		if ((portfolio[b_pt].fp = fopen(file_name, "r")) == NULL)
-			return NULL;
+		if ((portfolio[b_pt].fp = fopen(file_name, "r")) == NULL) {
+			printf("error:	%s is not a valid file, in %s.\n", file_name, __func__);
+			exit(1);
+		}
 		portfolio[b_pt].name = file_name;
 		portfolio[b_pt].f_name = set_filename(file_name);
-		if (read_file(&portfolio[b_pt++]))
-			printf("error:	read_file error in write_to_heap.\n");
-	} else
-		printf("error: to many files for current configuration.\n");
+		read_file(&portfolio[b_pt++]);
+	} else {
+		printf("error: to many files for current configuration in %s.\n", __func__);
+		exit(1);
+	}
 
 	nav->f_count = b_pt;
 
