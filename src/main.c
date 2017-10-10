@@ -20,39 +20,52 @@
  */
 #include "structs.h"
 
+//#include <signal.h>
+//
+//typedef void (*refresh)(int);
+//static refresh refresh_pf = (void (*)(int)) refresh_all;
+//
+//void refresh_all(int i)
+//{
+//	check_resize(1);
+//	refresh_portfolio(portfolio, nav);
+//}
+
 int main(int argc, char *argv[])
 {
 	struct Folio *portfolio;
 	struct Nav *nav = NULL;
-	int i, c, flags, input, tab;
+	int i, c, flags, f_count, tabwidth;
 	c = START;
-	tab = 8;
+	tabwidth = 8;
 
-	/* input flags */
+	/* f_count flags */
 	for (i = 1, flags = 0; i < argc; i++)
 		if (*argv[i] == '-')
 			flags += get_flags(argv[i]);
 
-	/* input portfolio */
+	/* f_count portfolio */
 	if (argc > 1)
 	{
-		set_tabwidth(tab);
+		set_tabwidth(tabwidth);
 		init_screen();
-		input = argc-1-flags;
-		portfolio = init_folio(input);
+		f_count = argc-1-flags;
+		portfolio = init_folio(f_count);
 		nav = init_nav(nav);
 
 		for (i = 1; i < argc; i++)
 			if (*argv[i] != '-')
-				read_arg(argv[i], portfolio, nav, input);
+				read_arg(argv[i], portfolio, nav, f_count);
 
 		do {
-			check_resize();
-			get_input(portfolio, nav, c, tab);
+			//signal(SIGWINCH, refresh_pf);
+			if(check_resize())
+				refresh_portfolio(portfolio, nav, tabwidth);
+			get_input(portfolio, nav, c, tabwidth);
 			blit_screen();
 		} while ((c = readchar()) != EOF && c != 'q');
 
-		free_folio(portfolio, input);
+		free_folio(portfolio, f_count);
 		free_screen();
 		free_nav(nav);
 	} else

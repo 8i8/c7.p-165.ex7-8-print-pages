@@ -36,10 +36,9 @@ int check_resize(void)
 		printf("error:	ioctl TIOCGWINSZ failed in %s.\n", __func__);
 		exit(1);
 	}
-
 	if (win.ws_col * win.ws_row * 4 == (int)screen.len)
 		return 0;
-
+	
 	return get_dimensions(&screen);
 }
 
@@ -70,7 +69,7 @@ void set_tabwidth(short width)
  * utf8_word_length:	Return multi-char length (-1) in bytes, read from the
  * initial UTF-8 char.
  */
-unsigned utf8_wordlength(const unsigned char a)
+unsigned utf8_wordlength(unsigned char a)
 {
 	if	(a >> 3 == FOUR_BYTES)
 		return 3;
@@ -84,7 +83,7 @@ unsigned utf8_wordlength(const unsigned char a)
 /**
  * test_utf8:	Keep track of UTF-8 char count and status.
  */
-unsigned test_utf8(const unsigned char a)
+unsigned test_utf8(unsigned char a)
 {
 	static short unsigned count;
 
@@ -106,9 +105,9 @@ unsigned test_utf8(const unsigned char a)
  */
 int write_screen(
 		struct Folio *file,
-		const short tab,
-		const short key_pressed,
-		const short is_last)
+		short tab,
+		short key_pressed,
+		short is_last)
 {
 	struct Screen *sc = &screen;
 	size_t i, row, col;
@@ -142,8 +141,8 @@ int write_screen(
 
 	d_pt += sprintf(d_pt, "%s ~ Page %lu of %lu",
 					file->f_name,
-					file->cur_page,
-					file->total_pages);
+					file->page_pt+1,
+					file->page_count);
 	sc->current_len = d_pt - count;
 
 	return 0;

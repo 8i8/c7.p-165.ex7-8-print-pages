@@ -25,14 +25,39 @@ int get_flags(const char *argv)
 }
 
 /**
- * read_arg:	Try to transcribe file into memory.
+ * set_filename:	Remove path from filename.
  */
-void read_arg(char *argv, struct Folio *pf, struct Nav *nav, int input)
+char *set_filename(char* file_name)
 {
-	if ((pf = write_to_heap(pf, nav, argv, input)) == NULL) {
-		printf("usage: %s <file1> <file2> ...\n", argv);
+	char *name;
+
+	if ((name = strrchr(file_name, '/')) != NULL)
+		return ++name;
+
+	return file_name;
+}
+
+/**
+ * read_arg:	Try to open and store file pointers in an array of structs.
+ */
+void read_arg(char *file_name, struct Folio *pf, struct Nav *nav, int num)
+{
+	static int f_pt;
+
+	if (f_pt < num) {
+		if ((pf[f_pt].fp = fopen(file_name, "r")) == NULL) {
+			printf("error:	%s is not a valid file, in %s.\n", file_name, __func__);
+			exit(1);
+		}
+		pf[f_pt].name = file_name;
+		pf[f_pt].f_name = set_filename(file_name);
+		read_folio(&pf[f_pt++]);
+	} else {
+		printf("error: to many files for current configuration in %s.\n", __func__);
 		exit(1);
 	}
+
+	nav->f_count = f_pt;
 }
 
 /**
@@ -99,19 +124,19 @@ short next_file(struct Nav *nav, short next)
 void turn_page(
 		struct Folio *pf,
 		struct Nav *nav,
-		const short tab,
-		const short dir,
-		const short end)
+		short tab,
+		short dir,
+		short end)
 {
 	if (dir == LEFT) {
 		if (!next_file(nav, LEFT)) {
-			pf[nav->f_active].cur_page = pf[nav->f_active].total_pages;
-			pf[nav->f_active].head = pf[nav->f_active].map_pos[pf[nav->f_active].map_pt];
+			pf[nav->f_active].page_pt = pf[nav->f_active].page_count-1;
+			pf[nav->f_active].head = pf[nav->f_active].map_pos[pf[nav->f_active].page_count-1];
 			write_screen(&pf[nav->f_active], tab, dir, end);
 		}
 	} else if (dir == RIGHT) {
 		if (!next_file(nav, RIGHT)) {
-			pf[nav->f_active].cur_page = 1;
+			pf[nav->f_active].page_pt = 0;
 			pf[nav->f_active].head = pf[nav->f_active].map_pos[0];
 			write_screen(&pf[nav->f_active], tab, dir, end);
 		}
@@ -121,7 +146,7 @@ void turn_page(
 /**
  * get_input:	Keyboard input.
  */
-void get_input(struct Folio *portfolio, struct Nav *nav, int c, const short tab)
+void get_input(struct Folio *portfolio, struct Nav *nav, int c, short tab)
 {
 	if (c == '\033') {
 		readchar();
@@ -130,31 +155,31 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c, const short tab)
 
 	switch (c)
 	{
-		case START: write_screen(&portfolio[nav->f_active], tab, START, NO);
+		case START: write_screen(&portfolio[nav->f_active], tab, START, CONT);
 			  break;
-		case 'k': if ((write_screen(&portfolio[nav->f_active], tab, UP, NO)))
-				  turn_page(portfolio, nav, tab, LEFT, YES);
+		case 'k': if ((write_screen(&portfolio[nav->f_active], tab, UP, CONT)))
+				  turn_page(portfolio, nav, tab, LEFT, STOP);
 			  break;
-		case 'A': if ((write_screen(&portfolio[nav->f_active], tab, UP, NO)))
-				  turn_page(portfolio, nav, tab, LEFT, YES);
+		case 'A': if ((write_screen(&portfolio[nav->f_active], tab, UP, CONT)))
+				  turn_page(portfolio, nav, tab, LEFT, STOP);
 			  break;
-		case 'j': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, NO)))
-				  turn_page(portfolio, nav, tab, RIGHT, YES);
+		case 'j': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, CONT)))
+				  turn_page(portfolio, nav, tab, RIGHT, STOP);
 			  break;
-		case 'B': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, NO)))
-				  turn_page(portfolio, nav, tab, RIGHT, YES);
+		case 'B': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, CONT)))
+				  turn_page(portfolio, nav, tab, RIGHT, STOP);
 			  break;
 		case 'h': next_file(nav, LEFT);
-			  write_screen(&portfolio[nav->f_active], tab, LEFT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, LEFT, CONT);
 			  break;
 		case 'C': next_file(nav, RIGHT);
-			  write_screen(&portfolio[nav->f_active], tab, RIGHT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, RIGHT, CONT);
 			  break;
 		case 'l': next_file(nav, RIGHT);
-			  write_screen(&portfolio[nav->f_active], tab, RIGHT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, RIGHT, CONT);
 			  break;
 		case 'D': next_file(nav, LEFT);
-			  write_screen(&portfolio[nav->f_active], tab, LEFT, NO);
+			  write_screen(&portfolio[nav->f_active], tab, LEFT, CONT);
 			  break;
 		default: 
 			  break;
@@ -164,37 +189,28 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c, const short tab)
 /**
  * navigate:	Set file->head to the position required for printing to screen.
  */
-int navigate(struct Folio *file, const short move, const short last)
+int navigate(struct Folio *file, short move, short last)
 {
-	size_t start;
-	start = file->cur_pos;
-
 	/* OFFSET, account for the cursor and static display elements */
 	switch (move)
 	{
-		case START: start = 0, file->cur_page = 1;
+		case START: file->page_pt = 0;
 			break;
-		case UP: if (file->cur_page > 1) {
-				if (last)
-					file->head = file->map_pos[(file->cur_page)-1];
-			 	else
-					file->head = file->map_pos[(--file->cur_page)-1];
+		case UP: if (file->page_pt > 0) {
+				if (!last)
+					file->head = file->map_pos[--file->page_pt];
 			} else
 				return 1;
 			break;
-		case DOWN: if (file->cur_page < file->total_pages)
-				if (last)
-					file->head = file->map_pos[(file->cur_page)-1];
-				else
-					file->head = file->map_pos[(++file->cur_page)-1];
-			else
+		case DOWN: if (file->page_pt < file->page_count-1) {
+				if (!last)
+					file->head = file->map_pos[++file->page_pt];
+			} else
 				return 1;
 			break;
 		default:
 			break;
 	}
-
-	file->cur_pos = start;
 
 	return 0;
 }

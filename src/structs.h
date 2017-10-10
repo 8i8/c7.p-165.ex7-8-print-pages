@@ -9,15 +9,13 @@ struct Folio {
 	FILE *fp;
 	char *name;			/* argv[] */
 	char *f_name;			/* argv[] */
-	char *c_pt;			/* Same as the above to free memory */
+	char *c_pt;			/* Memory entry point */
 	char *head;			/* Current pointer position in file */
-	char **map_pos;			/* array of new line addresses */
-	size_t map_pt;			/* length of map_pos */
+	char **map_pos;		/* array of new line addresses */
+	size_t page_pt;		/* Current page number */
+	size_t page_count;	/* Total number of pages */
 	size_t lines;			/* Line count of file */
 	size_t len;			/* Lenth in char of file */
-	size_t cur_page;		/* Current page number */
-	size_t cur_pos;			/* Current line number */
-	size_t total_pages;		/* Total number of pages */
 };
 
 struct Screen{

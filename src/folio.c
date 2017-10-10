@@ -16,19 +16,17 @@ struct Folio *define_folio(struct Folio *folio)
 	folio->c_pt = NULL;
 	folio->head = NULL;
 	folio->map_pos = NULL;
-	folio->map_pt = 0;
 	folio->lines = 0;
 	folio->len = 0;
-	folio->cur_page = 0;
-	folio->cur_pos = 0;
-	folio->total_pages = 0;
+	folio->page_pt = 0;
+	folio->page_count = 0;
 	return folio;
 }
 
 /**
  * init_folio:	Assign memory for array of folio structs.
  */
-struct Folio *init_folio(const unsigned int num)
+struct Folio *init_folio(unsigned int num)
 {
 	struct Folio *book, *pt;
 	size_t i;
@@ -58,9 +56,9 @@ static size_t file_size(FILE *fp)
 }
 
 /**
- * read_file:	Copy file into programs heap memory.
+ * read_folio:	Copy file into programs heap memory.
  */
-void read_file(struct Folio *folio)
+int read_folio(struct Folio *folio)
 {
 	size_t i;
 	int c, d, rows;
@@ -80,12 +78,12 @@ void read_file(struct Folio *folio)
 	}
 
 	folio->len = file_size(folio->fp);
-	folio->head = folio->c_pt = pt = malloc((folio->len * sizeof(int))+1);
-	folio->lines = 1;
+	folio->head = folio->c_pt = malloc((folio->len * sizeof(int))+1);
+	pt = folio->head;
 
 	/* Whilst copying the file into memory store the address of the first
 	 * line of every new page in an array of char* */
-	i = 0;
+	i = 0, folio->lines = 1;
 	temp[i++] = pt;
 
 	while ((c = fgetc(folio->fp)) != EOF) {
@@ -94,89 +92,99 @@ void read_file(struct Folio *folio)
 			temp[i++] = pt+1;	/* +1 skip over the '\n' */
 		*pt++ = c;
 	}
-
-	folio->map_pt = i-1;	/* -1 for index */
 	if (d != '\n')
 		folio->lines++;
 
 	*pt = '\0';
 	fclose(folio->fp);
-	folio->total_pages = (folio->lines / get_row())+1;
-	folio->cur_page = 1;
+
+	folio->page_count = i;
+	folio->page_pt = 0;
 
 	/* store map of page addresses */
-	if ((folio->map_pos = malloc(folio->total_pages * sizeof(char*))) == NULL) {
+	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL) {
 		printf("error:	malloc failed to allocate map_pos in %s.\n", __func__);
 		exit(1);
 	}
 
-	for (i = 0; i < folio->total_pages; i++)
+	for (i = 0; i < folio->page_count; i++)
 		folio->map_pos[i] = temp[i];
 	free(temp);
+
+	return 0;
 }
 
 /**
  * refresh_pages:	Reset all page start pointers in page array.
  */
-//void refresh_pages(struct Folio folio*)
-//{
-//	char *temp;
-//	int rows;
-//
-//	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
-//		printf("error:	malloc failed to assign memory to temp in %s.", __func__);
-//		exit(1);
-//	}
-//
-//	rows = get_row();
-//}
-
-/**
- * set_filename:	Remove path from filename.
- */
-char *set_filename(char* file_name)
+void refresh_folio(struct Folio *folio)
 {
-	char *name;
+	char **temp;
+	size_t i, j;
+	int c, rows;
 
-	if ((name = strrchr(file_name, '/')) != NULL)
-		return ++name;
+	rows = get_row();
+	folio->head = folio->c_pt;
 
-	return file_name;
-}
-
-/**
- * write_to_heap:	Treat every file in argv[] list.
- */
-struct Folio *write_to_heap(
-		struct Folio *portfolio,
-		struct Nav *nav,
-		char* file_name,
-		const int num_of_files)
-{
-	static int b_pt;
-
-	if (b_pt < num_of_files) {
-		if ((portfolio[b_pt].fp = fopen(file_name, "r")) == NULL) {
-			printf("error:	%s is not a valid file, in %s.\n", file_name, __func__);
-			exit(1);
-		}
-		portfolio[b_pt].name = file_name;
-		portfolio[b_pt].f_name = set_filename(file_name);
-		read_file(&portfolio[b_pt++]);
-	} else {
-		printf("error: to many files for current configuration in %s.\n", __func__);
+	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
+		printf("error:	malloc failed to assign memory to temp in %s.", __func__);
 		exit(1);
 	}
 
-	nav->f_count = b_pt;
+	/* Get the address of each new page */
+	i = 0, j = 1;
+	temp[i++] = folio->head++;
 
-	return portfolio;
+	while ((c = *folio->head++))
+		if (c == '\n' && j++ % (rows-OFFSET) == 0)
+			temp[i++] = folio->head;
+
+	folio->page_count = i;
+	folio->page_pt = 0;
+
+	free(folio->map_pos);
+	/* store map of page addresses */
+	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL) {
+		printf("error:	malloc failed to allocate map_pos in %s.\n", __func__);
+		exit(1);
+	}
+
+	for (i = 0; i < folio->page_count; i++)
+		folio->map_pos[i] = temp[i];
+
+	free(temp);
+
+
+}
+
+/**
+ * shift_page:	Move current page to closest equivalet in new index.
+ */
+//void shift_page(struct Folio file)
+//{
+//	double a = folio->page_pt + 1;	
+//	double b = folio->total_pages;
+//}
+
+/**
+ * refresh_portfolio:	Reset all pointers to page beginings for entire
+ * portfolio.
+ */
+void refresh_portfolio(struct Folio *pf, struct Nav *nav, short tabwidth)
+{
+	size_t i = 0;
+
+	for (i = 0; i < nav->f_count; i++) {
+		refresh_folio(&pf[i]);
+	}
+	write_screen(&pf[nav->f_active], tabwidth, STATIC, CONT);
+	blit_screen();
 }
 
 /**
  * free_folio:	Free leaves everywhere.
  */
-void free_folio(struct Folio *files, const size_t num)
+void free_folio(struct Folio *files, size_t num)
 {
 	size_t i;
 	for (i = 0; i < num; i++) {
