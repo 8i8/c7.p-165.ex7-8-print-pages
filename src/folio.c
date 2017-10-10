@@ -1,4 +1,5 @@
 #include "structs.h"
+#include <unistd.h>
 #include <limits.h>
 
 #define BUFFER1		10000
@@ -115,14 +116,34 @@ int read_folio(struct Folio *folio)
 }
 
 /**
+ * shift_page:	Move current page to closest equivalent in new index.
+ */
+struct Folio *transfer_page_pt(
+		struct Folio *folio,
+		unsigned old_count,
+		unsigned old_page)
+{
+	float c;
+
+	c = (float)old_count/old_page+1;
+	c = folio->page_count/c;
+	folio->page_pt = (unsigned)c;
+	folio->page_pt++;
+
+	return folio;
+}
+
+/**
  * refresh_pages:	Reset all page start pointers in page array.
  */
 void refresh_folio(struct Folio *folio)
 {
 	char **temp;
-	size_t i, j;
+	size_t i, j, old_pt, old_count;
 	int c, rows;
 
+	old_count = folio->page_count;
+	old_pt = folio->page_pt;
 	rows = get_row();
 	folio->head = folio->c_pt;
 
@@ -140,7 +161,6 @@ void refresh_folio(struct Folio *folio)
 			temp[i++] = folio->head;
 
 	folio->page_count = i;
-	folio->page_pt = 0;
 
 	free(folio->map_pos);
 	/* store map of page addresses */
@@ -151,32 +171,22 @@ void refresh_folio(struct Folio *folio)
 
 	for (i = 0; i < folio->page_count; i++)
 		folio->map_pos[i] = temp[i];
-
 	free(temp);
 
-
+	/* Put page pointer to appropriate page */
+	folio = transfer_page_pt(folio, old_count, old_pt);
 }
 
 /**
- * shift_page:	Move current page to closest equivalet in new index.
- */
-//void shift_page(struct Folio file)
-//{
-//	double a = folio->page_pt + 1;	
-//	double b = folio->total_pages;
-//}
-
-/**
- * refresh_portfolio:	Reset all pointers to page beginings for entire
+ * refresh_portfolio:	Reset all pointers to page beginnings for entire
  * portfolio.
  */
 void refresh_portfolio(struct Folio *pf, struct Nav *nav, short tabwidth)
 {
 	size_t i = 0;
-
-	for (i = 0; i < nav->f_count; i++) {
+	for (i = 0; i < nav->f_count; i++)
 		refresh_folio(&pf[i]);
-	}
+	write(1, "\n", 1);
 	write_screen(&pf[nav->f_active], tabwidth, STATIC, CONT);
 	blit_screen();
 }

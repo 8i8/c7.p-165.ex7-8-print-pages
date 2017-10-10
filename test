@@ -1,4 +1,4 @@
 #!/bin/bash
 
-./more_or_less src/main.c src/input.c src/screen.c src/folio.c src/structs.c \
+./more_or_less src/main.c src/input.c src/screen.c src/folio.c src/structs.h \
 src/print-files.h makefile testfile/test testfile/test2 testfile/test3

@@ -39,6 +39,7 @@ char *set_filename(char* file_name)
 
 /**
  * read_arg:	Try to open and store file pointers in an array of structs.
+ * Read files.
  */
 void read_arg(char *file_name, struct Folio *pf, struct Nav *nav, int num)
 {
@@ -81,24 +82,30 @@ int readchar(void)
 	static struct termios term, oterm;
 	char str[1];
 	str[0] = 0;
-	if ((tcgetattr(0, &oterm)) != 0)
-		return -1;
+	if ((tcgetattr(0, &oterm)) != 0) {
+		printf("error: failed to store oterm in %s.", __func__);
+		exit(1);
+	}
 	memcpy(&term, &oterm, sizeof(term));
 	term.c_lflag &= ~(ICANON | ECHO);
 	term.c_cc[VMIN] = 1;
 	term.c_cc[VTIME] = 0;
-	if ((tcsetattr(0, TCSANOW, &term)) != 0 )
-		return -1;
+	if ((tcsetattr(0, TCSANOW, &term)) != 0 ) {
+		printf("error: failed to set new state to term in %s.", __func__);
+		exit(1);
+	}
 	read(0, str, 1);
 	write(1, "\n", 1);
-	if ((tcsetattr(0, TCSANOW, &oterm)) != 0 )
-		return -1;
+	if ((tcsetattr(0, TCSANOW, &oterm)) != 0 ) {
+		printf("error: failed to reset state from oterm in %s.", __func__);
+		exit(1);
+	}
 	return str[0];
 }
 
 /**
  * next_file:	Set the desired file number in nav struct, used when changing
- * the dislayed file.
+ * the displayed file.
  */
 short next_file(struct Nav *nav, short next)
 {
@@ -118,8 +125,9 @@ short next_file(struct Nav *nav, short next)
 
 /**
  * turn_page:	Called when the file navigation reaches an extremity, if there
- * is a file before or after the present, in the direction being traveled, move
- * to the relevant page in that file, eiter the first or last page of that file.
+ * is a file before or after the current, in the direction being traversed,
+ * move to the relevant page in that file, either the first or last dependant
+ * on the direction.
  */
 void turn_page(
 		struct Folio *pf,
@@ -148,7 +156,7 @@ void turn_page(
  */
 void get_input(struct Folio *portfolio, struct Nav *nav, int c, short tab)
 {
-	if (c == '\033') {
+	if (c == 033) {
 		readchar();
 		c = readchar();
 	}
@@ -208,17 +216,24 @@ int navigate(struct Folio *file, short move, short last)
 			} else
 				return 1;
 			break;
+		case LEFT: if (!last)
+				file->head = file->map_pos[file->page_pt];
+			break;
+		case RIGHT: if (!last)
+				file->head = file->map_pos[file->page_pt];
+			break;
+		case STATIC: file->head = file->map_pos[file->page_pt];
+			break;
 		default:
 			break;
 	}
-
 	return 0;
 }
 
 /**
- * free_nav:	That is right, the nav are underattack and have been trapped
- * here in this function. Your task ... Should you accept it, to free all the
- * navi; By smply remembering to call this function.
+ * free_nav:	That is right, the nav are under attack, and are now trapped
+ * here in this function; Your task ... Should you choose to accept, to free
+ * all of them, by simply remember to call this function when you are done.
  */
 void free_nav(struct Nav *nav)
 {

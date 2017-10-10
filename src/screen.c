@@ -31,15 +31,18 @@ int get_dimensions(struct Screen *sc)
  */
 int check_resize(void)
 {
-	struct winsize win;
-	if ((ioctl(0, TIOCGWINSZ, &win)) == -1) {
-		printf("error:	ioctl TIOCGWINSZ failed in %s.\n", __func__);
-		exit(1);
-	}
-	if (win.ws_col * win.ws_row * 4 == (int)screen.len)
-		return 0;
+	//struct winsize win;
+	//if ((ioctl(0, TIOCGWINSZ, &win)) == -1) {
+	//	printf("error:	ioctl TIOCGWINSZ failed in %s.\n", __func__);
+	//	exit(1);
+	//}
+	//if (win.ws_col * win.ws_row * 4 == (int)screen.len)
+	//	return 0;
 	
-	return get_dimensions(&screen);
+	if (!(get_dimensions(&screen)))
+		printf("error:	get_dimensions failed in %s\n", __func__);
+
+	return 1;
 }
 
 /**
