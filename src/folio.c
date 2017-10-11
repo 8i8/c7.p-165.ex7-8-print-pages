@@ -195,6 +195,7 @@ void refresh_portfolio(struct Folio *pf, struct Nav *nav, short tabwidth)
 		refresh_folio(&pf[i]);
 	write(1, "\n", 1);
 	write_screen(&pf[nav->f_active], tabwidth, STATIC, CONT);
+	blit_screen();
 }
 
 /**

@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
 				read_arg(argv[i], portfolio, nav, f_count);
 		do
 		{
-			get_input(portfolio, nav, c, tabwidth);
 			signal(SIGWINCH, refresh_pf);
+			get_input(portfolio, nav, c, tabwidth);
 			blit_screen();
 		}
 		while ((c = readchar()) != EOF && c != 'q');
