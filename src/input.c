@@ -140,100 +140,31 @@ short next_file(struct Nav *nav, short next)
  * on the direction.
  */
 void turn_page(
-		struct Folio *pf,
+		struct Folio *portfolio,
 		struct Nav *nav,
 		short tab,
 		short dir,
 		short end)
 {
+	struct Folio *folio;
+	folio = &portfolio[nav->f_active];
+
 	if (dir == LEFT) {
 		if (!next_file(nav, LEFT)) {
-			pf[nav->f_active].page_pt = pf[nav->f_active].page_count-1;
-			pf[nav->f_active].head = pf[nav->f_active].map_pos[pf[nav->f_active].page_count-1];
-			write_screen(&pf[nav->f_active], tab, dir, end);
+			--folio;
+			folio->page_pt = folio->page_count-1;
+			folio->head = folio->map_pos[folio->page_pt];
+			write_screen(folio, tab, dir, end);
 		}
 	} else if (dir == RIGHT) {
 		if (!next_file(nav, RIGHT)) {
-			pf[nav->f_active].page_pt = 0;
-			pf[nav->f_active].head = pf[nav->f_active].map_pos[0];
-			write_screen(&pf[nav->f_active], tab, dir, end);
+			++folio;
+			folio->page_pt = 0;
+			folio->head = folio->map_pos[folio->page_pt];
+			write_screen(folio, tab, dir, end);
 		}
 	}
 }
-
-/**
- * turn_page:	Called when the file navigation reaches an extremity, if there
- * is a file before or after the current, in the direction being traversed,
- * move to the relevant page in that file, either the first or last dependant
- * on the direction.
- */
-//void turn_page(
-//		struct Folio *portfolio,
-//		struct Nav *nav,
-//		short tab,
-//		short dir,
-//		short end)
-//{
-//	struct Folio *folio;
-//	folio = &portfolio[nav->f_active];
-//
-//	if (dir == LEFT) {
-//		if (!next_file(nav, LEFT)) {
-//			folio->page_pt = folio->page_count-1;
-//			folio->head = folio->map_pos[folio->page_count-1];
-//			write_screen(folio, tab, dir, end);
-//		}
-//	} else if (dir == RIGHT) {
-//		if (!next_file(nav, RIGHT)) {
-//			folio->page_pt = 0;
-//			folio->head = folio->map_pos[0];
-//			write_screen(folio, tab, dir, end);
-//		}
-//	}
-//}
-
-/**
- * get_input:	Keyboard input.
- */
-//void get_input(struct Folio *portfolio, struct Nav *nav, int c, short tab)
-//{
-//	if (c == 033) {
-//		readchar();
-//		c = readchar();
-//	}
-//
-//	switch (c)
-//	{
-//		case START: write_screen(&portfolio[nav->f_active], tab, START, CONT);
-//			  break;
-//		case 'k': if ((write_screen(&portfolio[nav->f_active], tab, UP, CONT)))
-//				  turn_page(portfolio, nav, tab, LEFT, STOP);
-//			  break;
-//		case 'A': if ((write_screen(&portfolio[nav->f_active], tab, UP, CONT)))
-//				  turn_page(portfolio, nav, tab, LEFT, STOP);
-//			  break;
-//		case 'j': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, CONT)))
-//				  turn_page(portfolio, nav, tab, RIGHT, STOP);
-//			  break;
-//		case 'B': if ((write_screen(&portfolio[nav->f_active], tab, DOWN, CONT)))
-//				  turn_page(portfolio, nav, tab, RIGHT, STOP);
-//			  break;
-//		case 'h': next_file(nav, LEFT);
-//			  write_screen(&portfolio[nav->f_active], tab, LEFT, CONT);
-//			  break;
-//		case 'C': next_file(nav, RIGHT);
-//			  write_screen(&portfolio[nav->f_active], tab, RIGHT, CONT);
-//			  break;
-//		case 'l': next_file(nav, RIGHT);
-//			  write_screen(&portfolio[nav->f_active], tab, RIGHT, CONT);
-//			  break;
-//		case 'D': next_file(nav, LEFT);
-//			  write_screen(&portfolio[nav->f_active], tab, LEFT, CONT);
-//			  break;
-//		default: 
-//			  break;
-//	}
-//}
 
 /**
  * get_input:	Keyboard input.
@@ -284,31 +215,31 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c, short tab)
 /**
  * navigate:	Set file->head to the position required for printing to screen.
  */
-int navigate(struct Folio *f, short move, short last)
+int navigate(struct Folio *folio, short move, short last)
 {
 	switch (move)
 	{
-		case START: f->page_pt = 0;
+		case START: folio->page_pt = 0;
 			break;
-		case UP: if (f->page_pt > 0) {
+		case UP: if (folio->page_pt > 0) {
 				if (!last)
-					f->head = f->map_pos[--f->page_pt];
+					folio->head = folio->map_pos[--folio->page_pt];
 			} else
 				return 1;
 			break;
-		case DOWN: if (f->page_pt < f->page_count-1) {
+		case DOWN: if (folio->page_pt < folio->page_count-1) {
 				if (!last)
-					f->head = f->map_pos[++f->page_pt];
+					folio->head = folio->map_pos[++folio->page_pt];
 			} else
 				return 1;
 			break;
 		case LEFT: if (!last)
-				f->head = f->map_pos[f->page_pt];
+				folio->head = folio->map_pos[folio->page_pt];
 			break;
 		case RIGHT: if (!last)
-				f->head = f->map_pos[f->page_pt];
+				folio->head = folio->map_pos[folio->page_pt];
 			break;
-		case STATIC: f->head = f->map_pos[f->page_pt];
+		case STATIC: folio->head = folio->map_pos[folio->page_pt];
 			break;
 		default:
 			break;

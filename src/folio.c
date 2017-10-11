@@ -30,11 +30,11 @@ struct Folio *define_folio(struct Folio *folio)
  */
 struct Folio *init_folio(unsigned int num)
 {
-	struct Folio *book, *pt;
+	struct Folio *book, *folio_pt;
 	size_t i;
 	num_of_files = num;
 
-	if ((portfolio = book = pt = malloc(num * sizeof(struct Folio))) == NULL) {
+	if ((portfolio = book = folio_pt = malloc(num * sizeof(struct Folio))) == NULL) {
 		printf("error: malloc failed in %s ~ Folio.\n", __func__);
 		exit(1);
 	}
@@ -42,7 +42,7 @@ struct Folio *init_folio(unsigned int num)
 	for (i = 0; i < num; i++, book++)
 		book = define_folio(book);
 
-	return pt;
+	return folio_pt;
 }
 
 /**
@@ -72,8 +72,7 @@ int read_folio(struct Folio *folio)
 {
 	size_t i;
 	int c, d, rows;
-	char *pt;
-	char **temp;
+	char **temp, *f_pt;
 
 	rows = get_row();
 
@@ -88,24 +87,23 @@ int read_folio(struct Folio *folio)
 	}
 
 	folio->len = file_size(folio->fp);
-	folio->head = folio->c_pt = malloc((folio->len * sizeof(int))+1);
-	pt = folio->head;
+	folio->head = folio->c_pt = f_pt = malloc((folio->len * sizeof(int))+1);
 
 	/* Whilst copying the file into memory store the address of the first
 	 * line of every new page in an array of char* */
 	i = 0, folio->lines = 1;
-	temp[i++] = pt;
+	temp[i++] = f_pt;
 
 	while ((c = fgetc(folio->fp)) != EOF) {
 		d = c;
 		if (c == '\n' && folio->lines++ % (rows-OFFSET) == 0)
-			temp[i++] = pt+1;	/* +1 skip over the '\n' */
-		*pt++ = c;
+			temp[i++] = f_pt+1;	/* +1 skip over the '\n' */
+		*f_pt++ = c;
 	}
 	if (d != '\n')
 		folio->lines++;
 
-	*pt = '\0';
+	*f_pt = '\0';
 	fclose(folio->fp);
 
 	folio->page_count = i;
@@ -147,14 +145,14 @@ struct Folio *transfer_page_pt(
  */
 void refresh_folio(struct Folio *folio)
 {
-	char **temp;
+	char **temp, *f_pt;
 	size_t i, j, old_pt, old_count;
 	int c, rows;
 
 	old_count = folio->page_count;
 	old_pt = folio->page_pt;
 	rows = get_row();
-	folio->head = folio->c_pt;
+	f_pt = folio->c_pt;
 
 	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
 		printf("error:	malloc failed to assign memory to temp in %s.", __func__);
@@ -163,11 +161,11 @@ void refresh_folio(struct Folio *folio)
 
 	/* Get the address of each new page */
 	i = 0, j = 1;
-	temp[i++] = folio->head++;
+	temp[i++] = f_pt++;
 
-	while ((c = *folio->head++))
+	while ((c = *f_pt++))
 		if (c == '\n' && j++ % (rows-OFFSET) == 0)
-			temp[i++] = folio->head;
+			temp[i++] = f_pt;
 
 	folio->page_count = i;
 
