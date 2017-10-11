@@ -18,10 +18,10 @@ struct Folio *define_folio(struct Folio *folio)
 	folio->c_pt = NULL;
 	folio->head = NULL;
 	folio->map_pos = NULL;
-	folio->lines = 0;
-	folio->len = 0;
 	folio->page_pt = 0;
 	folio->page_count = 0;
+	folio->lines = 0;
+	folio->len = 0;
 	return folio;
 }
 
@@ -30,14 +30,13 @@ struct Folio *define_folio(struct Folio *folio)
  */
 struct Folio *init_folio(unsigned int num)
 {
+	char *msg = "error: malloc failed in init_folio() ~ Folio.\n";
 	struct Folio *book, *folio_pt;
 	size_t i;
 	num_of_files = num;
 
-	if ((portfolio = book = folio_pt = malloc(num * sizeof(struct Folio))) == NULL) {
-		printf("error: malloc failed in %s ~ Folio.\n", __func__);
-		exit(1);
-	}
+	if ((portfolio = book = folio_pt = malloc(num * sizeof(struct Folio))) == NULL)
+		write(2, msg, strlen(msg));
 
 	for (i = 0; i < num; i++, book++)
 		book = define_folio(book);
@@ -70,21 +69,20 @@ static size_t file_size(FILE *fp)
  */
 int read_folio(struct Folio *folio)
 {
+	char *msg1 = "error:	malloc failed to assign memory to temp in read_folio().\n";
+	char *msg2 = "error:	The file pointer supplied to read_folio() is NULL.\n";
+	char *msg3 = "error:	malloc failed to allocate map_pos in read_folio().\n";
 	size_t i;
 	int c, d, rows;
 	char **temp, *f_pt;
 
 	rows = get_row();
 
-	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
-		printf("error:	malloc failed to assign memory to temp in %s.", __func__);
-		exit(1);
-	}
+	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL)
+		write(2, msg1, strlen(msg1));
 
-	if (folio->fp == NULL) {
-		printf("error:	The file pointer supplied to %s is NULL.\n", __func__);
-		exit(1);
-	}
+	if (folio->fp == NULL)
+		write(2, msg2, strlen(msg2));
 
 	folio->len = file_size(folio->fp);
 	folio->head = folio->c_pt = f_pt = malloc((folio->len * sizeof(int))+1);
@@ -110,10 +108,8 @@ int read_folio(struct Folio *folio)
 	folio->page_pt = 0;
 
 	/* store map of page addresses */
-	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL) {
-		printf("error:	malloc failed to allocate map_pos in %s.\n", __func__);
-		exit(1);
-	}
+	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL)
+		write(2, msg3, strlen(msg3));
 
 	for (i = 0; i < folio->page_count; i++)
 		folio->map_pos[i] = temp[i];
@@ -123,19 +119,19 @@ int read_folio(struct Folio *folio)
 }
 
 /**
- * shift_page:	Move current page to closest equivalent in new index.
+ * shift_page:	Set current page to closest equivalent that is thei same as or
+ * lower than the previous value.
  */
-struct Folio *transfer_page_pt(
-		struct Folio *folio,
-		unsigned old_count,
-		unsigned old_page)
+struct Folio *translate_page_pt(struct Folio *folio, char *old_address)
 {
-	float c;
-
-	c = (float)old_count/old_page+1;
-	c = folio->page_count/c;
-	folio->page_pt = (unsigned)c;
-	folio->page_pt++;
+	if (folio->map_pos[folio->page_pt] < old_address) {
+		while (folio->map_pos[folio->page_pt] < old_address)
+			if (folio->page_pt < folio->page_count)
+				++folio->page_pt;
+		--folio->page_pt;
+	} else
+		while (folio->map_pos[folio->page_pt] > old_address)
+			--folio->page_pt;
 
 	return folio;
 }
@@ -145,43 +141,40 @@ struct Folio *transfer_page_pt(
  */
 void refresh_folio(struct Folio *folio)
 {
-	char **temp, *f_pt;
-	size_t i, j, old_pt, old_count;
+	char *msg1 = "error:	malloc failed to assign memory to temp in refresh_folio().\n";
+	char *msg2 = "error:	malloc failed to allocate map_pos in refresh_folio().\n";
+	char **temp, *f_pt, *old_address;
+	size_t i, line;
 	int c, rows;
 
-	old_count = folio->page_count;
-	old_pt = folio->page_pt;
+	old_address = folio->map_pos[folio->page_pt];
 	rows = get_row();
 	f_pt = folio->c_pt;
 
-	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL) {
-		printf("error:	malloc failed to assign memory to temp in %s.", __func__);
-		exit(1);
-	}
+	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL)
+		write(2, msg1, strlen(msg1));
 
 	/* Get the address of each new page */
-	i = 0, j = 1;
+	i = line = 0;
 	temp[i++] = f_pt++;
 
 	while ((c = *f_pt++))
-		if (c == '\n' && j++ % (rows-OFFSET) == 0)
+		if (c == '\n' && ++line % (rows-OFFSET) == 0)
 			temp[i++] = f_pt;
 
 	folio->page_count = i;
 
-	free(folio->map_pos);
 	/* store map of page addresses */
-	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL) {
-		printf("error:	malloc failed to allocate map_pos in %s.\n", __func__);
-		exit(1);
-	}
+	free(folio->map_pos);
+	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL)
+		write(2, msg2, strlen(msg2));
 
 	for (i = 0; i < folio->page_count; i++)
 		folio->map_pos[i] = temp[i];
 	free(temp);
 
 	/* Put page pointer to appropriate page */
-	folio = transfer_page_pt(folio, old_count, old_pt);
+	folio = translate_page_pt(folio, old_address);
 }
 
 /**

@@ -252,7 +252,7 @@ int navigate(struct Folio *folio, short move, short last)
  * all values are set and that the code is working correctly, as it is called
  * only after a screen resize, TODO error protection should be added.
  */
-void refresh_all(int check)
+void refresh_all(void)
 {
 	get_dimensions();
 	refresh_portfolio(get_portfolio(), get_nav(), get_tabwidth());

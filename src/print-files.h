@@ -28,7 +28,7 @@ int write_screen(
 		short is_last);
 int get_row(void);
 short get_tabwidth(void);
-void refresh_all(int check);
+void refresh_all(void);
 
 /* folio.c */
 struct Folio *get_portfolio(void);
