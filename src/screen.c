@@ -146,7 +146,7 @@ int write_screen(
 	char *f_pt, *d_pt, *count;
 	row = col = 0;
 
-	if ((i = navigate(file, key_pressed, is_last)))
+	if (!(i = navigate(file, key_pressed, is_last)))
 		return i;
 
 	d_pt = count = sc->display;
@@ -177,7 +177,7 @@ int write_screen(
 					file->page_count);
 	sc->current_len = d_pt - count;
 
-	return 0;
+	return 1;
 }
 
 /**

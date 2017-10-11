@@ -183,16 +183,16 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c, short tab)
 	{
 		case START: write_screen(folio, tab, START, CONT);
 			  break;
-		case 'k': if ((write_screen(folio, tab, UP, CONT)))
+		case 'k': if (!(write_screen(folio, tab, UP, CONT)))
 				  turn_page(portfolio, nav, tab, LEFT, STOP);
 			  break;
-		case 'A': if ((write_screen(folio, tab, UP, CONT)))
+		case 'A': if (!(write_screen(folio, tab, UP, CONT)))
 				  turn_page(portfolio, nav, tab, LEFT, STOP);
 			  break;
-		case 'j': if ((write_screen(folio, tab, DOWN, CONT)))
+		case 'j': if (!(write_screen(folio, tab, DOWN, CONT)))
 				  turn_page(portfolio, nav, tab, RIGHT, STOP);
 			  break;
-		case 'B': if ((write_screen(folio, tab, DOWN, CONT)))
+		case 'B': if (!(write_screen(folio, tab, DOWN, CONT)))
 				  turn_page(portfolio, nav, tab, RIGHT, STOP);
 			  break;
 		case 'h': if (!next_file(nav, LEFT))
@@ -225,13 +225,13 @@ int navigate(struct Folio *folio, short move, short last)
 				if (!last)
 					folio->head = folio->map_pos[--folio->page_pt];
 			} else
-				return 1;
+				return 0;
 			break;
 		case DOWN: if (folio->page_pt < folio->page_count-1) {
 				if (!last)
 					folio->head = folio->map_pos[++folio->page_pt];
 			} else
-				return 1;
+				return 0;
 			break;
 		case LEFT: if (!last)
 				folio->head = folio->map_pos[folio->page_pt];
@@ -244,7 +244,7 @@ int navigate(struct Folio *folio, short move, short last)
 		default:
 			break;
 	}
-	return 0;
+	return 1;
 }
 
 /**

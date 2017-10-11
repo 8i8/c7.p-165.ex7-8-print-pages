@@ -119,19 +119,24 @@ int read_folio(struct Folio *folio)
 }
 
 /**
- * shift_page:	Set current page to closest equivalent that is thei same as or
+ * shift_page:	Set current page to closest equivalent that is either equal to, or
  * lower than the previous value.
  */
 struct Folio *translate_page_pt(struct Folio *folio, char *old_address)
 {
+	short detect = 0;
 	if (folio->map_pos[folio->page_pt] < old_address) {
 		while (folio->map_pos[folio->page_pt] < old_address)
 			if (folio->page_pt < folio->page_count)
 				++folio->page_pt;
-		--folio->page_pt;
+			else
+				detect = 1;
+		if (!detect)
+			--folio->page_pt;
 	} else
 		while (folio->map_pos[folio->page_pt] > old_address)
-			--folio->page_pt;
+			if (folio->page_pt > 0)
+				--folio->page_pt;
 
 	return folio;
 }
