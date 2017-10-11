@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define OFFSET		1		/* Offset cursor and header line */
+#define TABWIDTH	8
 
 enum move { START, UP, DOWN, RIGHT, LEFT, STATIC };
 enum question { CONT, STOP };
@@ -12,8 +13,11 @@ struct Screen *init_screen(void);
 struct Nav *init_nav(struct Nav *nav);
 struct Folio *init_folio(unsigned int num);
 
+/* main */
+typedef void (*refresh)(int);
+
 /* screen.c */
-int check_resize(void);
+int get_dimensions(void);
 void blit_screen(void);
 void free_screen(void);
 void set_tabwidth(short width);
@@ -23,8 +27,11 @@ int write_screen(
 		short key_pressed,
 		short is_last);
 int get_row(void);
+short get_tabwidth(void);
+void refresh_all(int check);
 
 /* folio.c */
+struct Folio *get_portfolio(void);
 struct Folio *write_to_heap(
 		struct Folio *portfolio,
 		struct Nav *nav,
@@ -36,6 +43,7 @@ void free_folio(struct Folio *files, size_t num);
 
 /* input.c */
 int get_flags(const char *argv);
+struct Nav *get_nav(void);
 void read_arg(char *argv, struct Folio *pf, struct Nav *nav, int input);
 void get_input(struct Folio *portfolio, struct Nav *nav, int c, short tab);
 int readchar(void);

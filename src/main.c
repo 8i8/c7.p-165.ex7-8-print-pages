@@ -4,7 +4,7 @@
  * Exercise 7-8. Write a program to print a set of files, starting each new one
  * on a new page, with a title and a running page count for each file.
  *
- * <<< more_or_less >>>
+ * 	more_or_less
  *
  * The program is designed to open several text files simultaneously, the user
  * can navigate these file using either the vim style nav bindings or the arrow
@@ -21,31 +21,22 @@
 #include "structs.h"
 #include <signal.h>
 
-struct Folio *portfolio;
-typedef void (*refresh)(int);
-struct Nav *nav = NULL;
-int tabwidth = 8;
-
-void refresh_all(int i)
-{
-	check_resize();
-	refresh_portfolio(portfolio, nav, tabwidth);
-}
-
 static refresh refresh_pf = (void (*)(int)) refresh_all;
 
 int main(int argc, char *argv[])
 {
-	int i, c, flags, f_count;
+	struct Folio *portfolio;
+	struct Nav *nav = NULL;
+	int i, c, flags, f_count, tabwidth;
+	tabwidth = TABWIDTH;
 	c = START;
-	//tabwidth = 8;
 
-	/* f_count flags */
+	/* read flags */
 	for (i = 1, flags = 0; i < argc; i++)
 		if (*argv[i] == '-')
 			flags += get_flags(argv[i]);
 
-	/* f_count portfolio */
+	/* read files */
 	if (argc > 1)
 	{
 		set_tabwidth(tabwidth);
@@ -58,14 +49,13 @@ int main(int argc, char *argv[])
 		for (i = 1; i < argc; i++)
 			if (*argv[i] != '-')
 				read_arg(argv[i], portfolio, nav, f_count);
-
-		do {
-			signal(SIGWINCH, refresh_pf);
-			//if(check_resize())
-			//	refresh_portfolio(portfolio, nav, tabwidth);
+		do
+		{
 			get_input(portfolio, nav, c, tabwidth);
+			signal(SIGWINCH, refresh_pf);
 			blit_screen();
-		} while ((c = readchar()) != EOF && c != 'q');
+		}
+		while ((c = readchar()) != EOF && c != 'q');
 
 		free_folio(portfolio, f_count);
 		free_screen();

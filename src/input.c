@@ -4,6 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
+static struct Nav *navigation;
+
 /**
  * get_flags:	Get input from and count flags.
  */
@@ -25,9 +27,9 @@ int get_flags(const char *argv)
 }
 
 /**
- * set_filename:	Remove path from filename.
+ * remove_path:	Remove path from filename.
  */
-char *set_filename(char* file_name)
+char *remove_path(char* file_name)
 {
 	char *name;
 
@@ -38,8 +40,8 @@ char *set_filename(char* file_name)
 }
 
 /**
- * read_arg:	Try to open and store file pointers in an array of structs.
- * Read files.
+ * read_arg:	Open and store all file pointers in an array of structs.
+ * call to read_files() to put files into memory.
  */
 void read_arg(char *file_name, struct Folio *pf, struct Nav *nav, int num)
 {
@@ -51,7 +53,7 @@ void read_arg(char *file_name, struct Folio *pf, struct Nav *nav, int num)
 			exit(1);
 		}
 		pf[f_pt].name = file_name;
-		pf[f_pt].f_name = set_filename(file_name);
+		pf[f_pt].f_name = remove_path(file_name);
 		read_folio(&pf[f_pt++]);
 	} else {
 		printf("error: to many files for current configuration in %s.\n", __func__);
@@ -67,11 +69,19 @@ void read_arg(char *file_name, struct Folio *pf, struct Nav *nav, int num)
  */
 struct Nav *init_nav(struct Nav *nav)
 {
-	nav = malloc(sizeof(struct Nav));
+	navigation = nav = malloc(sizeof(struct Nav));
 	nav->f_count = 0;
 	nav->f_active = 0;
 
 	return nav;
+}
+
+/**
+ * get_nav:	Returns a pointer to the global nav struct.
+ */
+struct Nav *get_nav(void)
+{
+	return (navigation) ? navigation : NULL;
 }
 
 /**
@@ -199,7 +209,6 @@ void get_input(struct Folio *portfolio, struct Nav *nav, int c, short tab)
  */
 int navigate(struct Folio *file, short move, short last)
 {
-	/* OFFSET, account for the cursor and static display elements */
 	switch (move)
 	{
 		case START: file->page_pt = 0;
@@ -229,6 +238,18 @@ int navigate(struct Folio *file, short move, short last)
 	}
 	return 0;
 }
+
+/**
+ * refresh_all:	Reload after screen resize detected. This function assumes that
+ * all values are set and that the code is working correctly, as it is called
+ * only after a screen resize, TODO error protection should be added.
+ */
+void refresh_all(int check)
+{
+	get_dimensions();
+	refresh_portfolio(get_portfolio(), get_nav(), get_tabwidth());
+}
+
 
 /**
  * free_nav:	That is right, the nav are under attack, and are now trapped

@@ -5,6 +5,7 @@
 #define BUFFER1		10000
 
 static unsigned int num_of_files;
+static struct Folio *portfolio = NULL;
 
 /**
  * define_folio:	Fill a folio with naught.
@@ -33,7 +34,7 @@ struct Folio *init_folio(unsigned int num)
 	size_t i;
 	num_of_files = num;
 
-	if ((book = pt = malloc(num * sizeof(struct Folio))) == NULL) {
+	if ((portfolio = book = pt = malloc(num * sizeof(struct Folio))) == NULL) {
 		printf("error: malloc failed in %s ~ Folio.\n", __func__);
 		exit(1);
 	}
@@ -42,6 +43,14 @@ struct Folio *init_folio(unsigned int num)
 		book = define_folio(book);
 
 	return pt;
+}
+
+/**
+ * get_portfolio:	Returns a pointer to the portfolio.
+ */
+struct Folio *get_portfolio(void)
+{
+	return (portfolio) ? portfolio : NULL;
 }
 
 /**
@@ -188,7 +197,6 @@ void refresh_portfolio(struct Folio *pf, struct Nav *nav, short tabwidth)
 		refresh_folio(&pf[i]);
 	write(1, "\n", 1);
 	write_screen(&pf[nav->f_active], tabwidth, STATIC, CONT);
-	blit_screen();
 }
 
 /**

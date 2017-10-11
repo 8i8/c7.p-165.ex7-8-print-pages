@@ -8,11 +8,12 @@
 #define TWO_BYTES	6
 
 static struct Screen screen;
+static int tabwidth;
 
 /**
- * get_dimensions:	Get screen current dimentions from ioctl.
+ * terminal_dimensions:	Get screen current dimentions from ioctl.
  */
-int get_dimensions(struct Screen *sc)
+int terminal_dimensions(struct Screen *sc)
 {
 	struct winsize win;
 	if ((ioctl(0, TIOCGWINSZ, &win)) == -1) {
@@ -27,9 +28,22 @@ int get_dimensions(struct Screen *sc)
 }
 
 /**
- * check_resize:	Check if terminal has been resized.
+ * init_screen:	assign screen memory.
  */
-int check_resize(void)
+struct Screen *init_screen(void)
+{
+	if (!(terminal_dimensions(&screen)))
+		printf("error:	terminal_dimensions failed in %s\n", __func__);
+
+	screen.display = malloc(screen.len+1);
+
+	return &screen;
+}
+
+/**
+ * get_dimensions:	Check if terminal has been resized.
+ */
+int get_dimensions(void)
 {
 	//struct winsize win;
 	//if ((ioctl(0, TIOCGWINSZ, &win)) == -1) {
@@ -39,8 +53,8 @@ int check_resize(void)
 	//if (win.ws_col * win.ws_row * 4 == (int)screen.len)
 	//	return 0;
 	
-	if (!(get_dimensions(&screen)))
-		printf("error:	get_dimensions failed in %s\n", __func__);
+	if (!(terminal_dimensions(&screen)))
+		printf("error:	terminal_dimensions failed in %s\n", __func__);
 
 	return 1;
 }
@@ -54,18 +68,36 @@ int get_row(void)
 }
 
 /**
+ * tab_check:
+ */
+short tab_check(short width)
+{
+	return (width < 100 && width >= 0) ? 1 : 0;
+}
+
+/**
  * set_tabwidth:	set the system tab width to specified ammount.
  */
 void set_tabwidth(short width)
 {
 	char string[100] = { "tabs " };
 	char num[2];
-	if (!(width < 13 && width >= 0)) {
+	tabwidth = width;
+
+	if (!tab_check(tabwidth)) {
 		printf("error:	tab width value in %s.\n", __func__);
 		exit(1);
 	}
 	sprintf(num, "%d", width);
 	system(strcat(string, num));
+}
+
+/**
+ * get_tabwidth:	Returns the set tabstop width.
+ */
+short get_tabwidth(void)
+{
+	return (tab_check(tabwidth)) ? tabwidth : 0;
 }
 
 /**
@@ -104,7 +136,7 @@ unsigned test_utf8(unsigned char a)
 }
 
 /**
- * write_screen:	Write one page of file into screen struct.
+ * write_screen:	Write page into the screen struct.
  */
 int write_screen(
 		struct Folio *file,
@@ -152,24 +184,11 @@ int write_screen(
 }
 
 /**
- * blit_screen:	Write content of screen struct to STDOUT.
+ * blit_screen:	Write content of screen struct to stdout.
  */
 void blit_screen(void)
 {
 	write(1, screen.display, screen.current_len);
-}
-
-/**
- * init_screen:	assign screen memory.
- */
-struct Screen *init_screen(void)
-{
-	if (!(get_dimensions(&screen)))
-		printf("error:	get_dimensions failed in %s\n", __func__);
-
-	screen.display = malloc(screen.len+1);
-
-	return &screen;
 }
 
 /**
