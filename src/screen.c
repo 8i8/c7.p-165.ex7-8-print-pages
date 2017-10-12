@@ -57,9 +57,9 @@ int get_dimensions(void)
 }
 
 /**
- * get_row: Returns screen row count.
+ * get_rows: Returns screen row count.
  */
-int get_row(void)
+int get_rows(void)
 {
 	return screen.row;
 }

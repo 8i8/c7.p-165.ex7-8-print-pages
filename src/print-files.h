@@ -26,7 +26,7 @@ int write_screen(
 		short tab,
 		short key_pressed,
 		short is_last);
-int get_row(void);
+int get_rows(void);
 short get_tabwidth(void);
 void refresh_all(void);
 
