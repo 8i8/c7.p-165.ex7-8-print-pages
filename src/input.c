@@ -17,9 +17,7 @@ int get_flags(const char *argv)
 		switch (c) {
 			case 'n': printf("Hello World.\n");
 				break;
-			default:
-				printf("error: flag '%c' unknown.\n", c);
-				exit(1);
+			default: error(1, 0, "unknown flag '%c' in %s().\n", c, __func__);
 				break;
 		}
 	}
@@ -48,23 +46,21 @@ void read_arg(char *file_name, struct Folio *pf, struct Nav *nav, int num)
 	static int f_pt;
 
 	if (f_pt < num) {
-		if ((pf[f_pt].fp = fopen(file_name, "r")) == NULL) {
-			printf("error:	%s is not a valid file, in %s.\n", file_name, __func__);
-			exit(1);
+		if ((pf[f_pt].fp = fopen(file_name, "r")) == NULL)
+			error(0, 2, "`%s` raised an error in %s().\n", file_name, __func__);
+		else {
+			pf[f_pt].name = file_name;
+			pf[f_pt].f_name = remove_path(file_name);
+			read_folio(&pf[f_pt++]);
 		}
-		pf[f_pt].name = file_name;
-		pf[f_pt].f_name = remove_path(file_name);
-		read_folio(&pf[f_pt++]);
-	} else {
-		printf("error: to many files for current configuration in %s.\n", __func__);
-		exit(1);
-	}
+	} else
+		error(1, 0, "current configuration allows max of %d files, in %s.\n", num, __func__);
 
 	nav->f_count = f_pt;
 }
 
 /**
- * init_nav:	Returns nav struct to main for use in parsing navigational
+ * init_nav:	Returns nav struct to main for use in passing navigational
  * information.
  */
 struct Nav *init_nav(struct Nav *nav)
@@ -92,24 +88,21 @@ int readchar(void)
 	static struct termios term, oterm;
 	char str[1];
 	str[0] = 0;
-	if ((tcgetattr(0, &oterm)) != 0) {
-		printf("error: failed to store oterm in %s.", __func__);
-		exit(1);
-	}
+	if ((tcgetattr(0, &oterm)) != 0)
+		error(0, 0, "failed to store oterm in %s.", __func__);
+
 	memcpy(&term, &oterm, sizeof(term));
 	term.c_lflag &= ~(ICANON | ECHO);
 	term.c_cc[VMIN] = 1;
 	term.c_cc[VTIME] = 0;
-	if ((tcsetattr(0, TCSANOW, &term)) != 0 ) {
-		printf("error: failed to set new state to term in %s.", __func__);
-		exit(1);
-	}
+	if ((tcsetattr(0, TCSANOW, &term)) != 0 )
+		error(0, 0, "failed to set new state to term in %s.", __func__);
+
 	read(0, str, 1);
 	write(1, "\n", 1);
-	if ((tcsetattr(0, TCSANOW, &oterm)) != 0 ) {
-		printf("error: failed to reset state from oterm in %s.", __func__);
-		exit(1);
-	}
+	if ((tcsetattr(0, TCSANOW, &oterm)) != 0 )
+		error(0, 0, "failed to reset state from oterm in %s.", __func__);
+
 	return str[0];
 }
 
@@ -252,10 +245,8 @@ int navigate(struct Folio *folio, short move, short last)
  */
 void refresh_all(void)
 {
-	write(2, "refresh start\n", 14);
 	get_dimensions();
 	refresh_portfolio(get_portfolio(), get_nav());
-	write(2, "done\n", 5);
 }
 
 /**

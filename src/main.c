@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 		free_screen();
 		free_nav(nav);
 	} else
-		printf("usage: %s <file1> <file2> ...\n", argv[0]);
+		error(0, 0, " usage ~ %s <file1> <file2> ...\n", argv[0]);
 
 	return 0;
 }

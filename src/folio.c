@@ -31,13 +31,12 @@ struct Folio *define_folio(struct Folio *folio)
  */
 struct Folio *init_folio(unsigned int num)
 {
-	char *msg = "error: malloc failed in init_folio() ~ Folio.\n";
 	struct Folio *book, *folio_pt;
 	size_t i;
 	num_of_files = num;
 
 	if ((portfolio = book = folio_pt = malloc(num * sizeof(struct Folio))) == NULL)
-		write(2, msg, strlen(msg));
+		error(0, 0, "malloc failed in %s().\n", __func__);
 
 	for (i = 0; i < num; i++, book++)
 		book = define_folio(book);
@@ -70,9 +69,6 @@ static size_t file_size(FILE *fp)
  */
 int read_folio(struct Folio *folio)
 {
-	char *msg1 = "error:	malloc failed to assign memory to temp in read_folio().\n";
-	char *msg2 = "error:	The file pointer supplied to read_folio() is NULL.\n";
-	char *msg3 = "error:	malloc failed to allocate map_pos in read_folio().\n";
 	size_t i;
 	int c, d, rows;
 	char **temp, *f_pt;
@@ -80,10 +76,10 @@ int read_folio(struct Folio *folio)
 	rows = get_rows();
 
 	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL)
-		write(2, msg1, strlen(msg1));
+		error(0, 0, "malloc failed to assign memory to temp in %s().\n", __func__);
 
 	if (folio->fp == NULL)
-		write(2, msg2, strlen(msg2));
+		error(0, 0, "The file pointer supplied to %s() is NULL.\n", __func__);
 
 	folio->len = file_size(folio->fp);
 	folio->head = folio->c_pt = f_pt = malloc((folio->len * sizeof(int))+1);
@@ -110,7 +106,7 @@ int read_folio(struct Folio *folio)
 
 	/* store map of page addresses */
 	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL)
-		write(2, msg3, strlen(msg3));
+		error(0, 0, "malloc failed to allocate map_pos in %s().\n", __func__);
 
 	for (i = 0; i < folio->page_count; i++)
 		folio->map_pos[i] = temp[i];
@@ -147,8 +143,6 @@ struct Folio *translate_page_pt(
  */
 void refresh_folio(struct Folio *folio)
 {
-	char *msg1 = "error:	malloc failed to assign memory to temp in refresh_folio().\n";
-	char *msg2 = "error:	malloc failed to allocate map_pos in refresh_folio().\n";
 	char **temp, *f_pt;
 	size_t i, line, old_page_count, old_page_pt;
 	int c, rows;
@@ -160,7 +154,7 @@ void refresh_folio(struct Folio *folio)
 	f_pt = folio->c_pt;
 
 	if ((temp = malloc(BUFFER1*sizeof(char*))) == NULL)
-		write(2, msg1, strlen(msg1));
+		error(0, 0, "malloc failed to assign memory to temp in %s().\n", __func__);
 
 	/* Get the address of each new page */
 	i = line = 0;
@@ -175,7 +169,7 @@ void refresh_folio(struct Folio *folio)
 	/* store map of page addresses */
 	free(folio->map_pos);
 	if ((folio->map_pos = malloc(folio->page_count * sizeof(char*))) == NULL)
-		write(2, msg2, strlen(msg2));
+		error(0, 0, "malloc failed to allocate map_pos in %s().\n", __func__);
 
 	for (i = 0; i < folio->page_count; i++)
 		folio->map_pos[i] = temp[i];

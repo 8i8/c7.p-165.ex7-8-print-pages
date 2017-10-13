@@ -18,11 +18,10 @@ static refresh refresh_pf = (void (*)(int)) refresh_all;
  */
 int terminal_dimensions(struct Screen *sc)
 {
-	char *msg = "error:	ioctl TIOCGWINSZ failed in terminal_dimensions().\n";
 	struct winsize win;
 
 	if ((ioctl(0, TIOCGWINSZ, &win)) == -1)
-		write(2, msg, strlen(msg));
+		error(0, 0, "ioctl TIOCGWINSZ failed in %s().\n", __func__);
 
 	sc->old_row = sc->row;
 	sc->col = win.ws_col;
@@ -37,10 +36,8 @@ int terminal_dimensions(struct Screen *sc)
  */
 struct Screen *init_screen(void)
 {
-	char *msg = "error:	terminal_dimensions failed in init_screen().\n";
-
 	if (!(terminal_dimensions(&screen)))
-		write(2, msg, strlen(msg));
+		error(0, 0, "terminal_dimensions failed in %s().\n", __func__);
 
 	screen.display = malloc(screen.len+1);
 
@@ -57,7 +54,7 @@ void init_listen(void)
 	sa.sa_flags = 0;
 	sa.sa_handler = refresh_pf;
 	if (sigaction(SIGWINCH, &sa, NULL) == -1)
-		exit(1);
+		error(0, 0, "sigaction failed in %s().\n", __func__);
 }
 
 /**
@@ -65,10 +62,8 @@ void init_listen(void)
  */
 int get_dimensions(void)
 {
-	char *msg = "error:	terminal_dimensions failed in get_dimensions\n";
-
 	if (!(terminal_dimensions(&screen)))
-		write(2, msg, strlen(msg));
+		error(0, 0, "terminal_dimensions failed in %s().\n", __func__);
 
 	return 1;
 }
@@ -99,13 +94,12 @@ short tab_check(short width)
  */
 void set_tabwidth(short width)
 {
-	char *msg = "error:	tab width value in set_tabwidth.\n";
 	char string[100] = { "tabs " };
 	char num[2];
 	tabwidth = width;
 
 	if (!tab_check(tabwidth))
-		write(2, msg, strlen(msg));
+		error(0, 0, "tab width value in %s() is not accepted.\n", __func__);
 
 	sprintf(num, "%d", width);
 	system(strcat(string, num));

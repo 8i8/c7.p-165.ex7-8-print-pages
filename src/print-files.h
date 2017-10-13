@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <error.h>
 
 #define OFFSET		1		/* Offset cursor and header line */
 #define TABWIDTH	8
