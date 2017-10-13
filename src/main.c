@@ -19,9 +19,6 @@
  * are longer than the screen is wide.
  */
 #include "structs.h"
-#include <signal.h>
-
-static refresh refresh_pf = (void (*)(int)) refresh_all;
 
 int main(int argc, char *argv[])
 {
@@ -43,6 +40,7 @@ int main(int argc, char *argv[])
 		f_count = argc-1-flags;
 
 		init_screen();
+		init_listen();
 		portfolio = init_folio(f_count);
 		nav = init_nav(nav);
 
@@ -51,7 +49,6 @@ int main(int argc, char *argv[])
 				read_arg(argv[i], portfolio, nav, f_count);
 		do
 		{
-			signal(SIGWINCH, refresh_pf);
 			get_input(portfolio, nav, c, tabwidth);
 			blit_screen();
 		}

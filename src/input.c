@@ -219,8 +219,6 @@ int navigate(struct Folio *folio, short move, short last)
 {
 	switch (move)
 	{
-		case START: folio->page_pt = 0;
-			break;
 		case UP: if (folio->page_pt > 0) {
 				if (!last)
 					folio->head = folio->map_pos[--folio->page_pt];
@@ -254,8 +252,10 @@ int navigate(struct Folio *folio, short move, short last)
  */
 void refresh_all(void)
 {
+	write(2, "refresh start\n", 14);
 	get_dimensions();
-	refresh_portfolio(get_portfolio(), get_nav(), get_tabwidth());
+	refresh_portfolio(get_portfolio(), get_nav());
+	write(2, "done\n", 5);
 }
 
 /**

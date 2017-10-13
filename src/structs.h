@@ -23,6 +23,7 @@ struct Screen{
 	unsigned int row;
 	unsigned int len;
 	unsigned int current_len;
+	unsigned int old_row;
 	char *display;
 };
 

@@ -18,6 +18,7 @@ typedef void (*refresh)(int);
 
 /* screen.c */
 int get_dimensions(void);
+void init_listen(void);
 void blit_screen(void);
 void free_screen(void);
 void set_tabwidth(short width);
@@ -27,6 +28,7 @@ int write_screen(
 		short key_pressed,
 		short is_last);
 int get_rows(void);
+int get_old_rows(void);
 short get_tabwidth(void);
 void refresh_all(void);
 
@@ -38,7 +40,7 @@ struct Folio *write_to_heap(
 		char* file_name,
 		const int num_of_files);
 int read_folio(struct Folio *folio);
-void refresh_portfolio(struct Folio *pf, struct Nav *nav, short tabwidth);
+void refresh_portfolio(struct Folio *pf, struct Nav *nav);
 void free_folio(struct Folio *files, size_t num);
 
 /* input.c */

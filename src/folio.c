@@ -120,73 +120,42 @@ int read_folio(struct Folio *folio)
 }
 
 /**
- * shift_page:	Set current page to closest equivalent that is either equal to, or
- * lower than the previous value.
+ * translate_page_pt:	Set current page to closest equivalent.
  */
-struct Folio *translate_page_pt(struct Folio *folio, char *old_address, size_t old_page_count, size_t old_page_pt)
+struct Folio *translate_page_pt(
+		struct Folio *folio,
+		size_t old_page_count,
+		size_t old_page_pt)
 {
 
-	/* TODO when the previous page is higher than
-	 * the current but is size smaller, it can be
-	 * contained within the geometry of the current
-	 * page, when this is the case if the page is
-	 * advanced it will be way past the contained
-	 * text */
+	int p_pt;
 
-	/* If the new pages are bigger than the old. */ 
-	if (folio->page_count < old_page_count) {
-		/* If the pointer is holding a lower ress than the previous pointer. */
-		if (folio->map_pos[folio->page_pt] < _address) {
-			/* While the address is stillwer. */
-			while (folio->map_pos[folio->e_pt] < old_address)
-			{
-				/* and there is stillother page available. */
-				if (folio->page_pt < io->page_count-1)
-					++folio->page;
-				else
-					break;
-				if (folio->page_pt < io->page_count-1)
-					++folio->page;
-			}
-		} else {
-		/* If the pointer is above the previoaddress. */
-			/* While the address is still greater. */
-			while (folio->map_pos[folio->page_pt]+1 > old_address)
-			{	/* If the new pages are bigger than the previous, */
-				/* TODO */
-				if (folio->page_count < old_page_count)
-				{
-					if (folio->page_pt > 0)
-						--folio->page_pt;
-					else
-						break;
-				} else 
-				/* If the new pages are smaller than the previous, */
-					if (folio->page_pt > 0)
-						--folio->page_pt;
-			}
-		}
-	} else {
-	/* If the new pages are smaller than the previous */
-	}
+	p_pt = round((float)folio->page_count / (float)old_page_count * (float)(old_page_pt+1)-1);
+
+	if (p_pt < (int)folio->page_count && p_pt >= 0)
+		folio->page_pt = p_pt;
+	else if (p_pt > 0)
+		folio->page_pt = 0;
+	else if (p_pt >= (int)folio->page_count)
+		folio->page_pt = folio->page_count-1;
 
 	return folio;
 }
 
 /**
- * refresh_pages:	Reset all page start pointers in page array.
+ * refresh_folio:	Reset all page start pointers in page array.
  */
 void refresh_folio(struct Folio *folio)
 {
 	char *msg1 = "error:	malloc failed to assign memory to temp in refresh_folio().\n";
 	char *msg2 = "error:	malloc failed to allocate map_pos in refresh_folio().\n";
-	char **temp, *f_pt, *old_address;
+	char **temp, *f_pt;
 	size_t i, line, old_page_count, old_page_pt;
 	int c, rows;
 
-	old_address = folio->map_pos[folio->page_pt];
 	old_page_count = folio->page_count;
 	old_page_pt = folio->page_pt;
+
 	rows = get_rows();
 	f_pt = folio->c_pt;
 
@@ -202,7 +171,6 @@ void refresh_folio(struct Folio *folio)
 			temp[i++] = f_pt;
 
 	folio->page_count = i;
-	folio->page_pt = i/2;
 
 	/* store map of page addresses */
 	free(folio->map_pos);
@@ -214,21 +182,18 @@ void refresh_folio(struct Folio *folio)
 	free(temp);
 
 	/* Put page pointer to appropriate page */
-	folio = translate_page_pt(folio, old_address, old_page_count, old_page_pt);
+	folio = translate_page_pt(folio, old_page_count, old_page_pt);
 }
 
 /**
  * refresh_portfolio:	Reset all pointers to page beginnings for entire
  * portfolio.
  */
-void refresh_portfolio(struct Folio *pf, struct Nav *nav, short tabwidth)
+void refresh_portfolio(struct Folio *pf, struct Nav *nav)
 {
-	size_t i = 0;
+	size_t i;
 	for (i = 0; i < nav->f_count; i++)
 		refresh_folio(&pf[i]);
-	write(1, "\n", 1);
-	write_screen(&pf[nav->f_active], tabwidth, STATIC, CONT);
-	blit_screen();
 }
 
 /**

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <signal.h>
 
 #define FOUR_BYTES	30		/* Test for UTF-8 width */
 #define THREE_BYTES	14
@@ -9,6 +10,8 @@
 
 static struct Screen screen;
 static int tabwidth;
+
+static refresh refresh_pf = (void (*)(int)) refresh_all;
 
 /**
  * terminal_dimensions:	Get screen current dimentions from ioctl.
@@ -21,6 +24,7 @@ int terminal_dimensions(struct Screen *sc)
 	if ((ioctl(0, TIOCGWINSZ, &win)) == -1)
 		write(2, msg, strlen(msg));
 
+	sc->old_row = sc->row;
 	sc->col = win.ws_col;
 	sc->row = win.ws_row;
 	sc->len = sc->col * sc->row * 4;	// * 4 for UTF-8 char
@@ -44,6 +48,19 @@ struct Screen *init_screen(void)
 }
 
 /**
+ * init_listen:
+ */
+void init_listen(void)
+{
+	struct sigaction sa;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sa.sa_handler = refresh_pf;
+	if (sigaction(SIGWINCH, &sa, NULL) == -1)
+		exit(1);
+}
+
+/**
  * get_dimensions:	Check if terminal has been resized.
  */
 int get_dimensions(void)
@@ -62,6 +79,11 @@ int get_dimensions(void)
 int get_rows(void)
 {
 	return screen.row;
+}
+
+int get_old_rows(void)
+{
+	return screen.old_row;
 }
 
 /**
