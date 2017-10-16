@@ -54,7 +54,7 @@ void read_arg(char *file_name, struct Folio *pf, struct Nav *nav, int num)
 			read_folio(&pf[f_pt++]);
 		}
 	} else
-		error(1, 0, "current configuration allows max of %d files, in %s.\n", num, __func__);
+		error(1, 0,"current configuration allows max of %d files, in %s.\n", num, __func__);
 
 	nav->f_count = f_pt;
 }
@@ -251,8 +251,9 @@ void refresh_all(void)
 
 /**
  * free_nav:	That is right, the nav are under attack, and are now trapped
- * here in this function; Your task ... Should you choose to accept, to free
- * all of them, by simply remember to call this function when you are done.
+ * here between these brackets; Your task ... Should you choose to accept, to
+ * free all of them, by simply remember to call this function when you are
+ * done.
  */
 void free_nav(struct Nav *nav)
 {
