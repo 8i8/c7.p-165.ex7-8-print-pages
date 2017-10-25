@@ -59,7 +59,7 @@ static size_t file_size(FILE *fp)
 {
 	size_t len;
 	fseek(fp, 0L, SEEK_END);
-	len = (unsigned)ftell(fp);
+	len = (unsigned long)ftell(fp);
 	rewind(fp);
 	return len;
 }
