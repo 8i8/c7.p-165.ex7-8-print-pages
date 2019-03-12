@@ -168,7 +168,7 @@ int write_screen(
 	d_pt = count = sc->display;
 	f_pt = file->head;
 
-	/* -OFFSET for cursor line and page header */
+	/* OFFSET for cursor line and page header */
 	for (i = 0 ; i < sc->len && row < sc->row-OFFSET; i++)
 		if (*f_pt != '\0') {
 			if (col < sc->col) {
